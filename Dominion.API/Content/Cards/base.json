@@ -1,0 +1,219 @@
+﻿[
+    {
+        "id": "copper",
+        "displayName": "Copper",
+        "cost": 0,
+        "types": [ "Treasure" ],
+        "effects": [
+            {
+                "type": "gainCoins",
+                "amount": 1
+            }
+        ]
+    },
+    {
+        "id": "silver",
+        "displayName": "Silver",
+        "cost": 3,
+        "types": [ "Treasure" ],
+        "effects": [
+            {
+                "type": "gainCoins",
+                "amount": 2
+            }
+        ]
+    },
+    {
+        "id": "gold",
+        "displayName": "Gold",
+        "cost": 6,
+        "types": [ "Treasure" ],
+        "effects": [
+            {
+                "type": "gainCoins",
+                "amount": 3
+            }
+        ]
+    },
+
+    {
+        "id": "estate",
+        "displayName": "Estate",
+        "cost": 2,
+        "types": [ "Victory" ],
+        "effects": []
+    },
+    {
+        "id": "duchy",
+        "displayName": "Duchy",
+        "cost": 5,
+        "types": [ "Victory" ],
+        "effects": []
+    },
+    {
+        "id": "province",
+        "displayName": "Province",
+        "cost": 8,
+        "types": [ "Victory" ],
+        "effects": []
+    },
+
+    {
+        "id": "village",
+        "displayName": "Village",
+        "cost": 3,
+        "types": [ "Action" ],
+        "effects": [
+            {
+                "type": "drawCards",
+                "amount": 1
+            },
+            {
+                "type": "gainActions",
+                "amount": 2
+            }
+        ]
+    },
+    {
+        "id": "smithy",
+        "displayName": "Smithy",
+        "cost": 4,
+        "types": [ "Action" ],
+        "effects": [
+            {
+                "type": "drawCards",
+                "amount": 3
+            }
+        ]
+    },
+    {
+        "id": "market",
+        "displayName": "Market",
+        "cost": 5,
+        "types": [ "Action" ],
+        "effects": [
+            {
+                "type": "drawCards",
+                "amount": 1
+            },
+            {
+                "type": "gainActions",
+                "amount": 1
+            },
+            {
+                "type": "gainBuys",
+                "amount": 1
+            },
+            {
+                "type": "gainCoins",
+                "amount": 1
+            }
+        ]
+    },
+    {
+        "id": "festival",
+        "displayName": "Festival",
+        "cost": 5,
+        "types": [ "Action" ],
+        "effects": [
+            {
+                "type": "gainActions",
+                "amount": 2
+            },
+            {
+                "type": "gainBuys",
+                "amount": 1
+            },
+            {
+                "type": "gainCoins",
+                "amount": 2
+            }
+        ]
+    },
+    {
+        "id": "laboratory",
+        "displayName": "Laboratory",
+        "cost": 5,
+        "types": [ "Action" ],
+        "effects": [
+            {
+                "type": "drawCards",
+                "amount": 2
+            },
+            {
+                "type": "gainActions",
+                "amount": 1
+            }
+        ]
+    },
+    {
+        "id": "chapel",
+        "displayName": "Chapel",
+        "cost": 2,
+        "types": [ "Action" ],
+        "effects": [
+            {
+                "type": "trashCards",
+                "maxAmount": 4
+            }
+        ]
+    },
+    {
+        "id": "mine",
+        "displayName": "Mine",
+        "cost": 5,
+        "types": [ "Action" ],
+        "effects": [
+            {
+                "type": "trashAndUpgradeTreasure"
+            }
+        ]
+    },
+    {
+        "id": "workshop",
+        "displayName": "Workshop",
+        "cost": 3,
+        "types": [ "Action" ],
+        "effects": [
+            {
+                "type": "gainCard",
+                "maxCost": 4
+            }
+        ]
+    },
+    {
+        "id": "cellar",
+        "displayName": "Cellar",
+        "cost": 2,
+        "types": [ "Action" ],
+        "effects": [
+            {
+                "type": "gainActions",
+                "amount": 1
+            },
+            { "type": "discardAnyNumber" },
+            { "type": "drawDiscardedAmount" }
+        ]
+    },
+    {
+        "id": "merchant",
+        "displayName": "Merchant",
+        "cost": 3,
+        "types": [ "Action" ],
+        "effects": [
+            {
+                "type": "drawCards",
+                "amount": 1
+            },
+            {
+                "type": "gainActions",
+                "amount": 1
+            },
+            {
+                "type": "conditionalGainCoins",
+                "condition": "firstSilverPlayed",
+                "amount": 1
+            }
+        ]
+    }
+]

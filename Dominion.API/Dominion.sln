@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34622.214
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dominion.API", "Dominion.API.csproj", "{F83E759F-BA66-46A6-90F9-EB8C54A0D7FE}"
+EndProject
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "dominion.client", "..\Dominion.Client\dominion.client.esproj", "{6CB09E6C-277F-8FA0-EFB1-2134213BFF17}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F83E759F-BA66-46A6-90F9-EB8C54A0D7FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F83E759F-BA66-46A6-90F9-EB8C54A0D7FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F83E759F-BA66-46A6-90F9-EB8C54A0D7FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F83E759F-BA66-46A6-90F9-EB8C54A0D7FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6CB09E6C-277F-8FA0-EFB1-2134213BFF17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6CB09E6C-277F-8FA0-EFB1-2134213BFF17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6CB09E6C-277F-8FA0-EFB1-2134213BFF17}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{6CB09E6C-277F-8FA0-EFB1-2134213BFF17}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6CB09E6C-277F-8FA0-EFB1-2134213BFF17}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6CB09E6C-277F-8FA0-EFB1-2134213BFF17}.Release|Any CPU.Deploy.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {785803D6-B425-40AC-9F1D-4D8279FDDC1B}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,24 @@
+{
+  "Name": "Base",
+  "CardSetId": "base_cards",
+  "startingHandSize": 6,
+  "startingActions": 1,
+  "startingBuys": 1,
+  "startingDeck": {
+    "copper": 7,
+    "estate": 3
+  },
+  "Supply": {
+    "copper": 60,
+    "silver": 40,
+    "gold": 30,
+
+    "estate": 8,
+    "duchy": 8,
+    "province": 8,
+
+    "village": 10,
+    "smithy": 10,
+    "market": 10
+  }
+}
