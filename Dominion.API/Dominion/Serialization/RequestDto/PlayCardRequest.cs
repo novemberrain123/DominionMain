@@ -1,4 +1,4 @@
-﻿namespace Dominion.API.Dominion.Serialization;
+﻿namespace Dominion.API.Dominion.Serialization.RequestDto;
 
 public sealed class PlayCardRequest
 {

@@ -28,9 +28,8 @@ public sealed class PlayerDto
 
     public required List<CardDto> Hand { get; init; }
     public required List<CardDto> InPlay { get; init; }
-
-    public required int DeckCount { get; init; }
-    public required int DiscardCount { get; init; }
+    public required List<CardDto> DiscardPile { get; init; }
+    public required List<CardDto> Deck { get; init; }
 }
 
 public sealed class CardDto

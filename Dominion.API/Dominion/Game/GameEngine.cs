@@ -103,8 +103,9 @@ namespace Dominion.Dominion.Game
         }
 
         //buy phase
-        public void BuyCard(GameState state, Player player, CardDefinition card)
+        public void BuyCard(GameState state, Player player, string cardDef)
         {
+            var card = Cards.Get(cardDef);
             ValidateCanBuy(state, player, card);
             ResolveBuy(state, player, card);
         }
@@ -137,7 +138,7 @@ namespace Dominion.Dominion.Game
                 return false;
             }
 
-            if (!state.SupplyPiles.TryGetValue(card.DisplayName, out var pile))
+            if (!state.SupplyPiles.TryGetValue(card.Id, out var pile))
             {
                 error = "Card not in supply";
                 return false;
@@ -155,25 +156,20 @@ namespace Dominion.Dominion.Game
 
         private void ResolveBuy(GameState state, Player player, CardDefinition card)
         {
-            var pile = state.SupplyPiles[card.DisplayName];
+            var pile = state.SupplyPiles[card.Id];
 
-            // 1. Remove from supply
             pile.RemoveCard();
 
-            // 2. Create new card instance
             var instance = new Card
             {
                 Definition = card
             };
 
-            // 3. Add to discard pile
             player.DiscardPile.Add(instance);
 
-            // 4. Deduct resources
             player.Coins -= card.Cost;
             player.Buys--;
 
-            // 5. Log event
             state.Events.Add(new GameEvent
             {
                 SequenceNumber = state.Events.Count + 1,
@@ -201,6 +197,24 @@ namespace Dominion.Dominion.Game
             player.Draw(5);
         }
 
+        //end action phase
+        public void EndActionPhase(GameState state)
+        {
+            if (state.IsGameOver)
+            {
+                throw new InvalidOperationException(
+                    "The game is already over.");
+            }
+
+            if (state.Phase != GamePhase.Action)
+            {
+                throw new InvalidOperationException(
+                    "The game is not in the Action phase.");
+            }
+
+            state.Phase = GamePhase.Buy;
+        }
+
         //start turn
         private void StartTurn(Player player)
         {
@@ -218,11 +232,21 @@ namespace Dominion.Dominion.Game
         }
 
         //end turn
-        public void EndTurn(GameState state, Player player)
+        public void EndTurn(GameState state)
         {
-            Cleanup(player);
+            if (state.IsGameOver)
+            {
+                throw new InvalidOperationException(
+                    "The game is already over.");
+            }
+
+            var currentPlayer = state.Players[state.CurrentPlayerIndex];
+
+            Cleanup(currentPlayer);
             NextPlayer(state);
-            StartTurn(state.Players[state.CurrentPlayerIndex]);
+
+            var nextPlayer = state.Players[state.CurrentPlayerIndex];
+            StartTurn(nextPlayer);
         }
 
         //helper

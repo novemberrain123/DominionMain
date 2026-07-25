@@ -6,7 +6,8 @@
   "startingBuys": 1,
   "startingDeck": {
     "copper": 7,
-    "estate": 3
+    "estate": 3,
+    "village": 1
   },
   "Supply": {
     "copper": 60,

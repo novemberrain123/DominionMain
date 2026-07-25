@@ -59,8 +59,13 @@ public static class GameStateDtoMapper
                 .Select(ToCardDto)
                 .ToList(),
 
-            DeckCount = player.Deck.Count,
-            DiscardCount = player.DiscardPile.Count
+            DiscardPile = player.DiscardPile
+                .Select(ToCardDto)
+                .ToList(),
+
+            Deck = player.Deck
+                .Select(ToCardDto)
+                .ToList(),
         };
     }
 

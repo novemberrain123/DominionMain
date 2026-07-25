@@ -1,4 +1,5 @@
 ﻿using Dominion.API.Dominion.Serialization;
+using Dominion.API.Dominion.Serialization.RequestDto;
 using Dominion.Dominion.Game;
 using Dominion.Dominion.Game.Debug;
 using Dominion.Dtos;
@@ -179,6 +180,85 @@ namespace Dominion.Controllers
                 engine.Cards);
 
             return Ok(dto);
+        }
+
+        [HttpPost("end-action-phase")]
+        public ActionResult<GameStateDto> EndActionPhase()
+        {
+            var engine = _provider.Engine;
+
+            if (engine is null)
+            {
+                return NotFound("No game has been initialized.");
+            }
+
+            var state = engine.State;
+
+            try
+            {
+                engine.EndActionPhase(state);
+            }
+            catch (InvalidOperationException exception)
+            {
+                return BadRequest(exception.Message);
+            }
+
+            return Ok(GameStateDtoMapper.ToDto(
+                state,
+                engine.Cards));
+        }
+
+        [HttpPost("buy-card")]
+        public ActionResult<GameStateDto> BuyCard([FromBody] BuyCardRequest request)
+        {
+            var engine = _provider.Engine;
+
+            if (engine is null)
+            {
+                return NotFound("No game has been initialized.");
+            }
+
+            var state = engine.State;
+            var currentPlayer = state.Players[state.CurrentPlayerIndex];
+
+            try
+            {
+                engine.BuyCard(state, currentPlayer, request.CardDefId);
+            }
+            catch (InvalidOperationException exception)
+            {
+                return BadRequest(exception.Message);
+            }
+
+            return Ok(GameStateDtoMapper.ToDto(
+                state,
+                engine.Cards));
+        }
+
+        [HttpPost("end-turn")]
+        public ActionResult<GameStateDto> EndTurn()
+        {
+            var engine = _provider.Engine;
+
+            if (engine is null)
+            {
+                return NotFound("No game has been initialized.");
+            }
+
+            var state = engine.State;
+
+            try
+            {
+                engine.EndTurn(state);
+            }
+            catch (InvalidOperationException exception)
+            {
+                return BadRequest(exception.Message);
+            }
+
+            return Ok(GameStateDtoMapper.ToDto(
+                state,
+                engine.Cards));
         }
 
     }
