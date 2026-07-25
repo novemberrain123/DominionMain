@@ -1,5 +1,7 @@
-﻿using Dominion.Dominion.Game;
+﻿using Dominion.API.Dominion.Serialization;
+using Dominion.Dominion.Game;
 using Dominion.Dominion.Game.Debug;
+using Dominion.Dtos;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Dominion.Controllers
@@ -119,6 +121,64 @@ namespace Dominion.Controllers
                     InPlay = player.InPlay.Select(c => c.Definition.Id)
                 })
             );
+        }
+
+        [HttpGet("game")]
+        public ActionResult<GameStateDto> GetGame()
+        {
+            var engine = _provider.Engine;
+
+            if (engine is null)
+            {
+                return NotFound("No game has been initialized.");
+            }
+
+            var dto = GameStateDtoMapper.ToDto(engine.State, engine.Cards);
+
+            return Ok(dto);
+        }
+
+        [HttpPost("play-card")]
+        public ActionResult<GameStateDto> PlayCard([FromBody] PlayCardRequest request)
+        {
+            var engine = _provider.Engine;
+
+            if (engine is null)
+            {
+                return NotFound("No game has been initialized.");
+            }
+
+            var state = engine.State;
+
+            if (state.IsGameOver)
+            {
+                return BadRequest("The game is already over.");
+            }
+
+            var currentPlayer = state.Players[state.CurrentPlayerIndex];
+
+            var card = currentPlayer.Hand
+                .FirstOrDefault(card => card.Id == request.CardInstanceId);
+
+            if (card is null)
+            {
+                return BadRequest("The selected card is not in the current player's hand.");
+            }
+
+            try
+            {
+                engine.PlayCard(state, currentPlayer, card);
+            }
+            catch (InvalidOperationException exception)
+            {
+                return BadRequest(exception.Message);
+            }
+
+            var dto = GameStateDtoMapper.ToDto(
+                state,
+                engine.Cards);
+
+            return Ok(dto);
         }
 
     }

@@ -24,7 +24,8 @@ namespace Dominion.Dominion.Game
 
             MoveToInPlay(player, card);
 
-            player.Actions--;
+            if (IsAction(card))
+                player.Actions--;
 
             ExecuteEffect(state, player, card);
 
@@ -65,12 +66,24 @@ namespace Dominion.Dominion.Game
                 return false;
             }
 
+            if (state.Phase == GamePhase.Buy && !IsTreasure(card))
+            {
+                error = "Only treasures can be played in Buy phase";
+                return false;
+            }
+
+            if (!IsAction(card) && !IsTreasure(card))
+            {
+                error = "This card cannot be played";
+                return false;
+            }
+
             error = null;
             return true;
         }
 
         //for frontend
-        private bool CanPlay(GameState state, Player player, Card card)
+        public bool CanPlay(GameState state, Player player, Card card)
         {
             return IsValidatePlay(state, player, card, out _);
         }
@@ -177,7 +190,7 @@ namespace Dominion.Dominion.Game
         }
 
         //cleanup phase
-        public void Cleanup(Player player)
+        private void Cleanup(Player player)
         {
             player.DiscardPile.AddRange(player.Hand);
             player.DiscardPile.AddRange(player.InPlay);
@@ -185,12 +198,33 @@ namespace Dominion.Dominion.Game
             player.Hand.Clear();
             player.InPlay.Clear();
 
-            player.Actions = 1;
-            player.Buys = 1;
-
             player.Draw(5);
         }
-        
+
+        //start turn
+        private void StartTurn(Player player)
+        {
+            player.Actions = 1;
+            player.Buys = 1;
+            player.Coins = 0;
+        }
+
+        //next player
+        private void NextPlayer(GameState state)
+        {
+            state.CurrentPlayerIndex = (state.CurrentPlayerIndex + 1) % state.Players.Count;
+            state.TurnNumber++;
+            state.Phase = GamePhase.Action;
+        }
+
+        //end turn
+        public void EndTurn(GameState state, Player player)
+        {
+            Cleanup(player);
+            NextPlayer(state);
+            StartTurn(state.Players[state.CurrentPlayerIndex]);
+        }
+
         //helper
         private bool IsAction(Card card)
         {

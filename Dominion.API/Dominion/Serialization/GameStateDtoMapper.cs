@@ -1,0 +1,97 @@
+﻿using Dominion.API.Dominion.Serialization;
+using Dominion.Dominion.Cards;
+using Dominion.Dominion.Game;
+using Dominion.Dominion.Players;
+using Dominion.Dominion.Serialization.EffectDatas;
+
+namespace Dominion.Dtos;
+
+public static class GameStateDtoMapper
+{
+    public static GameStateDto ToDto(
+        GameState state,
+        CardRegistry cardRegistry)
+    {
+        if (state.Players.Count == 0)
+        {
+            throw new InvalidOperationException(
+                "Cannot create a game-state DTO before the game is initialized.");
+        }
+
+        var currentPlayer = state.Players[state.CurrentPlayerIndex];
+
+        return new GameStateDto
+        {
+            TurnNumber = state.TurnNumber,
+            Phase = state.Phase,
+            CurrentPlayerIndex = state.CurrentPlayerIndex,
+            CurrentPlayerId = currentPlayer.Id,
+            IsGameOver = state.IsGameOver,
+
+            Supply = state.SupplyPiles.Values
+                .Select(pile => ToSupplyPileDto(pile, cardRegistry))
+                .ToList(),
+
+            Players = state.Players
+                .Select(ToPlayerDto)
+                .ToList(),
+
+            TrashCount = state.Trash.Count
+        };
+    }
+
+    private static PlayerDto ToPlayerDto(Player player)
+    {
+        return new PlayerDto
+        {
+            Id = player.Id,
+            Name = player.Name,
+
+            Actions = player.Actions,
+            Buys = player.Buys,
+            Coins = player.Coins,
+
+            Hand = player.Hand
+                .Select(ToCardDto)
+                .ToList(),
+
+            InPlay = player.InPlay
+                .Select(ToCardDto)
+                .ToList(),
+
+            DeckCount = player.Deck.Count,
+            DiscardCount = player.DiscardPile.Count
+        };
+    }
+
+    private static CardDto ToCardDto(Card card)
+    {
+        return new CardDto
+        {
+            InstanceId = card.Id,
+            DefinitionId = card.Definition.Id,
+            Name = card.Definition.DisplayName,
+            Cost = card.Definition.Cost,
+            Types = card.Definition.Types.ToList()
+        };
+    }
+
+    private static SupplyPileDto ToSupplyPileDto(
+        SupplyPile pile,
+        CardRegistry cardRegistry)
+    {
+        CardDefinition definition =
+            cardRegistry.Get(pile.CardDefId);
+
+        return new SupplyPileDto
+        {
+            DefinitionId = definition.Id,
+            Name = definition.DisplayName,
+            Cost = definition.Cost,
+
+            Types = definition.Types.ToList(),
+
+            Remaining = pile.Count
+        };
+    }
+}

@@ -2,11 +2,19 @@
 using Dominion.Dominion.Game;
 using Dominion.Dominion.Game.Debug;
 using Dominion.Dominion.Serialization;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add controllers
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.Converters.Add(
+                        new JsonStringEnumConverter(
+                            JsonNamingPolicy.CamelCase));
+                });
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
