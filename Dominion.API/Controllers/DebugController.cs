@@ -103,7 +103,12 @@ namespace Dominion.Controllers
                     player.Buys,
                     player.Coins,
 
-                    Hand = player.Hand.Select(c => c.Definition.Id),
+                    Hand = player.Hand.Select(c => new
+                    {
+                        c.Definition.Id,
+                        Types = c.Definition.Types.Select(t => t.ToString()),
+                        c.Definition.Cost
+                    }),
 
                     DeckCount = player.Deck.Count,
 

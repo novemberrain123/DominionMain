@@ -8,7 +8,7 @@ type PlayerDto = {
     buys: number;
     coins: number;
 
-    hand: string[];
+    hand: CardDto[];
 
     deckCount: number;
     deck: string[];
@@ -16,6 +16,12 @@ type PlayerDto = {
     discardPile: string[];
 
     inPlay: string[];
+};
+
+type CardDto = {
+    id: string;
+    types: string[];
+    cost: number;
 };
 export default function DominionBoard() {
     const [players, setPlayers] = useState<PlayerDto[]>([]);
@@ -55,7 +61,7 @@ export default function DominionBoard() {
 
                                 <div className="flex flex-wrap gap-3">
                                     {player.hand.map((card, index) => (
-                                        <Card key={`${card}-${index}`} name={card} />
+                                        <Card key={`${card}-${index}`} card={card} />
                                     ))}
                                 </div>
                             </div>
@@ -84,16 +90,16 @@ function Stat({
     );
 }
 
-function Card({ name }: { name: string }) {
+function Card({ card }: { card: CardDto }) {
     return (
         <div className="flex h-40 w-28 flex-col justify-between rounded-2xl border border-white/10 bg-yellow-100 p-3 text-black shadow-lg transition-transform hover:-translate-y-1">
             <div className="text-sm font-semibold uppercase tracking-wide text-black/60">
-                Treasure
+                {card.types.join(" \u2022 ")}
             </div>
 
-            <div className="text-center text-lg font-bold capitalize">{name}</div>
+            <div className="text-center text-lg font-bold capitalize">{card.id}</div>
 
-            <div className="text-right text-sm font-medium text-black/60">Cost 0</div>
+            <div className="text-right text-sm font-medium text-black/60">Cost {card.cost}</div>
         </div>
     );
 }
