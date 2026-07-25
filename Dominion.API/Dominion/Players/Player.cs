@@ -31,7 +31,7 @@ namespace Dominion.Dominion.Players
                     return;
                 }
 
-                var card = Deck[^1]; // top of deck (or index 0 if you prefer)
+                var card = Deck[^1];
                 Deck.RemoveAt(Deck.Count - 1);
                 Hand.Add(card);
             }

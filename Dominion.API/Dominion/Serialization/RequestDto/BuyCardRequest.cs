@@ -2,5 +2,5 @@
 
 public sealed class BuyCardRequest
 {
-    public required string CardDefId { get; init; }
+    public required string DefinitionId { get; init; }
 }

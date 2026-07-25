@@ -223,7 +223,7 @@ namespace Dominion.Controllers
 
             try
             {
-                engine.BuyCard(state, currentPlayer, request.CardDefId);
+                engine.BuyCard(state, currentPlayer, request.DefinitionId);
             }
             catch (InvalidOperationException exception)
             {
