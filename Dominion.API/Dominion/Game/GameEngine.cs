@@ -10,15 +10,44 @@ namespace Dominion.Dominion.Game
         public GameState State { get; }
 
         private readonly EffectResolver _effectResolver;
+        private readonly GameSetupService _gameSetupService;
+        private readonly GameConfig _config;
 
-        public GameEngine(CardRegistry cards, GameState state, EffectResolver effectResolver)
+        public GameEngine(
+            CardRegistry cards,
+            GameState state,
+            EffectResolver effectResolver,
+            GameSetupService gameSetupService,
+            GameConfig config
+            )
         {
             Cards = cards;
             State = state;
             _effectResolver = effectResolver;
+            _gameSetupService = gameSetupService;
+            _config = config;
         }
 
-        public void PlayAllTreasures(GameState state, Player player)
+        public void StartGame()
+        {
+            if (State.Status != GameStatus.Lobby)
+            {
+                throw new InvalidOperationException(
+                    "The game has already started.");
+            }
+
+            if (State.Players.Count < 2)
+            {
+                throw new InvalidOperationException(
+                    "At least two players are required.");
+            }
+
+            _gameSetupService.InitializePlayers(this, _config);
+
+            State.Status = GameStatus.Playing;
+        }
+
+        public void PlayAllTreasures(Player player)
         {
             var treasures = player.Hand
                 .Where(IsTreasure)
@@ -26,60 +55,75 @@ namespace Dominion.Dominion.Game
 
             foreach (var treasure in treasures)
             {
-                PlayCard(state, player, treasure);
+                PlayCard(player, treasure);
             }
         }
 
-        //action phase
-        public void PlayCard(GameState state, Player player, Card card)
+        // Action and treasure play
+        public void PlayCard(Player player, Card card)
         {
-            ValidateCanPlay(state, player, card);
+            ValidateCanPlay(player, card);
 
             MoveToInPlay(player, card);
 
             if (IsAction(card))
-                player.Actions--;
-
-            ExecuteEffect(state, player, card);
-
-            state.Events.Add(new GameEvent
             {
-                SequenceNumber = state.Events.Count + 1,
+                player.Actions--;
+            }
+
+            ExecuteEffect(player, card);
+
+            State.Events.Add(new GameEvent
+            {
+                SequenceNumber = State.Events.Count + 1,
                 Type = GameEventType.CardPlayed,
                 PlayerId = player.Id,
                 Card = card.Id
             });
         }
 
-        private void ValidateCanPlay(GameState state, Player player, Card card)
+        private void ValidateCanPlay(Player player, Card card)
         {
-            if (!IsValidatePlay(state, player, card, out var error))
+            if (!IsValidPlay(player, card, out var error))
             {
                 throw new InvalidOperationException(error);
             }
         }
 
-        private bool IsValidatePlay(GameState state, Player player, Card card, out string? error)
+        private bool IsValidPlay(
+            Player player,
+            Card card,
+            out string? error)
         {
+            if (State.IsGameOver)
+            {
+                error = "The game is already over.";
+                return false;
+            }
+
             if (!player.Hand.Contains(card))
             {
                 error = "Card not in hand";
                 return false;
             }
 
-            if (state.Phase == GamePhase.Action && IsAction(card) && player.Actions <= 0)
+            if (State.Phase == GamePhase.Action &&
+                IsAction(card) &&
+                player.Actions <= 0)
             {
                 error = "No actions left";
                 return false;
             }
 
-            if (state.Phase != GamePhase.Buy && IsTreasure(card))
+            if (State.Phase != GamePhase.Buy &&
+                IsTreasure(card))
             {
                 error = "Treasures only playable in Buy phase";
                 return false;
             }
 
-            if (state.Phase == GamePhase.Buy && !IsTreasure(card))
+            if (State.Phase == GamePhase.Buy &&
+                !IsTreasure(card))
             {
                 error = "Only treasures can be played in Buy phase";
                 return false;
@@ -95,53 +139,175 @@ namespace Dominion.Dominion.Game
             return true;
         }
 
-        //for frontend
-        public bool CanPlay(GameState state, Player player, Card card)
+        // Used when building frontend DTOs
+        public bool CanPlay(Player player, Card card)
         {
-            return IsValidatePlay(state, player, card, out _);
+            return IsValidPlay(player, card, out _);
         }
 
-        private void MoveToInPlay(Player player, Card card)
+        private static void MoveToInPlay(
+            Player player,
+            Card card)
         {
             player.Hand.Remove(card);
             player.InPlay.Add(card);
         }
 
-        private void ExecuteEffect(GameState state, Player player, Card card)
+        private void ExecuteEffect(
+            Player player,
+            Card card)
         {
             foreach (var effect in card.Definition.Effects)
             {
-                _effectResolver.Apply(effect, this, player);
+                _effectResolver.Apply(
+                    effect,
+                    this,
+                    player);
             }
         }
 
-        //buy phase
-        public void BuyCard(GameState state, Player player, string cardDef)
+        // Buy phase
+        public void BuyCard(Player player, string cardDefinitionId)
         {
-            var card = Cards.Get(cardDef);
-            ValidateCanBuy(state, player, card);
-            ResolveBuy(state, player, card);
-            if (IsGameOver(state))
+            var cardDefinition = Cards.Get(cardDefinitionId);
+
+            ValidateCanBuy(player, cardDefinition);
+            ResolveBuy(player, cardDefinition);
+
+            if (IsGameOver())
             {
-                EndGame(state);
+                EndGame();
             }
         }
 
-        private void EndGame(GameState state)
+        private void ValidateCanBuy(
+            Player player,
+            CardDefinition card)
         {
-            state.IsGameOver = true;
-            state.Result = CalculateResults(state);
-
-            state.Events.Add(new GameEvent
+            if (!IsValidBuy(player, card, out var error))
             {
-                SequenceNumber = state.Events.Count + 1,
+                throw new InvalidOperationException(error);
+            }
+        }
+
+        private bool IsValidBuy(
+            Player player,
+            CardDefinition card,
+            out string? error)
+        {
+            if (State.IsGameOver)
+            {
+                error = "The game is already over.";
+                return false;
+            }
+
+            if (State.Phase != GamePhase.Buy)
+            {
+                error = "Not in Buy phase";
+                return false;
+            }
+
+            if (player.Buys <= 0)
+            {
+                error = "No buys remaining";
+                return false;
+            }
+
+            if (player.Coins < card.Cost)
+            {
+                error = "Not enough coins";
+                return false;
+            }
+
+            if (!State.SupplyPiles.TryGetValue(
+                    card.Id,
+                    out var pile))
+            {
+                error = "Card not in supply";
+                return false;
+            }
+
+            if (pile.Count <= 0)
+            {
+                error = "Card pile empty";
+                return false;
+            }
+
+            error = null;
+            return true;
+        }
+
+        private void ResolveBuy(
+            Player player,
+            CardDefinition card)
+        {
+            var pile = State.SupplyPiles[card.Id];
+
+            pile.RemoveCard();
+
+            var instance = new Card
+            {
+                Definition = card
+            };
+
+            player.DiscardPile.Add(instance);
+            player.Coins -= card.Cost;
+            player.Buys--;
+
+            State.Events.Add(new GameEvent
+            {
+                SequenceNumber = State.Events.Count + 1,
+                Type = GameEventType.CardBought,
+                PlayerId = player.Id,
+                Card = instance.Id
+            });
+        }
+
+        // Used when building frontend DTOs
+        public bool CanBuy(
+            Player player,
+            CardDefinition card)
+        {
+            return IsValidBuy(player, card, out _);
+        }
+
+        private bool IsGameOver()
+        {
+            // Hardcoded for now. This could eventually be a game setting.
+            if (!State.SupplyPiles.TryGetValue(
+                    "province",
+                    out var provincePile))
+            {
+                throw new InvalidOperationException(
+                    "Province pile is missing.");
+            }
+
+            if (provincePile.Count == 0)
+            {
+                return true;
+            }
+
+            var emptyPileCount = State.SupplyPiles.Values
+                .Count(pile => pile.Count == 0);
+
+            return emptyPileCount >= 3;
+        }
+
+        private void EndGame()
+        {
+            State.IsGameOver = true;
+            State.Result = CalculateResults();
+
+            State.Events.Add(new GameEvent
+            {
+                SequenceNumber = State.Events.Count + 1,
                 Type = GameEventType.GameOver
             });
         }
 
-        private GameResult CalculateResults(GameState state)
+        private GameResult CalculateResults()
         {
-            var scoredPlayers = state.Players
+            var scoredPlayers = State.Players
                 .Select(player => new
                 {
                     PlayerId = player.Id,
@@ -154,7 +320,9 @@ namespace Dominion.Dominion.Game
             var currentRank = 0;
             int? previousScore = null;
 
-            for (var index = 0; index < scoredPlayers.Count; index++)
+            for (var index = 0;
+                 index < scoredPlayers.Count;
+                 index++)
             {
                 var player = scoredPlayers[index];
 
@@ -180,116 +348,57 @@ namespace Dominion.Dominion.Game
             };
         }
 
-        private int CalculateVictoryPoints(Player player)
+        private static int CalculateVictoryPoints(Player player)
         {
             var ownedCards = player.Deck
                 .Concat(player.Hand)
                 .Concat(player.DiscardPile)
                 .Concat(player.InPlay);
 
-            return ownedCards.Sum(card =>
-            {
-                return card.Definition.VictoryPoints;
-            });
+            return ownedCards.Sum(
+                card => card.Definition.VictoryPoints);
         }
 
-        private bool IsGameOver(GameState state)
+        // Phase transition
+        public void EndActionPhase()
         {
-            // hardcode for now, may add a game setting to allow for different end conditions
-            if (!state.SupplyPiles.TryGetValue("province", out var provincePile))
+            if (State.IsGameOver)
             {
                 throw new InvalidOperationException(
-                    "Province pile is missing.");
+                    "The game is already over.");
             }
 
-            if (provincePile.Count == 0)
+            if (State.Phase != GamePhase.Action)
             {
-                return true;
+                throw new InvalidOperationException(
+                    "The game is not in the Action phase.");
             }
 
-            var emptyPileCount = state.SupplyPiles.Values
-                .Count(pile => pile.Count == 0);
-
-            return emptyPileCount == 3;
+            State.Phase = GamePhase.Buy;
         }
 
-        private void ValidateCanBuy(GameState state, Player player, CardDefinition card)
+        // Turn transition
+        public void EndTurn()
         {
-            if (!IsValidBuy(state, player, card, out var error))
+            if (State.IsGameOver)
             {
-                throw new InvalidOperationException(error);
+                throw new InvalidOperationException(
+                    "The game is already over.");
             }
+
+            var currentPlayer =
+                State.Players[State.CurrentPlayerIndex];
+
+            Cleanup(currentPlayer);
+            MoveToNextPlayer();
+
+            var nextPlayer =
+                State.Players[State.CurrentPlayerIndex];
+
+            StartTurn(nextPlayer);
         }
 
-        private bool IsValidBuy(GameState state, Player player, CardDefinition card, out string? error)
-        {
-            if (state.Phase != GamePhase.Buy)
-            {
-                error = "Not in Buy phase";
-                return false;
-            }
-
-            if (player.Buys <= 0)
-            {
-                error = "No buys remaining";
-                return false;
-            }
-
-            if (player.Coins < card.Cost)
-            {
-                error = "Not enough coins";
-                return false;
-            }
-
-            if (!state.SupplyPiles.TryGetValue(card.Id, out var pile))
-            {
-                error = "Card not in supply";
-                return false;
-            }
-
-            if (pile.Count <= 0)
-            {
-                error = "Card pile empty";
-                return false;
-            }
-
-            error = null;
-            return true;
-        }
-
-        private void ResolveBuy(GameState state, Player player, CardDefinition card)
-        {
-            var pile = state.SupplyPiles[card.Id];
-
-            pile.RemoveCard();
-
-            var instance = new Card
-            {
-                Definition = card
-            };
-
-            player.DiscardPile.Add(instance);
-
-            player.Coins -= card.Cost;
-            player.Buys--;
-
-            state.Events.Add(new GameEvent
-            {
-                SequenceNumber = state.Events.Count + 1,
-                Type = GameEventType.CardBought,
-                PlayerId = player.Id,
-                Card = instance.Id
-            });
-        }
-
-        //for frontend
-        public bool CanBuy(GameState state, Player player, CardDefinition card)
-        {
-            return IsValidBuy(state, player, card, out _);
-        }
-
-        //cleanup phase
-        private void Cleanup(Player player)
+        private static void Cleanup(Player player)
         {
             player.DiscardPile.AddRange(player.Hand);
             player.DiscardPile.AddRange(player.InPlay);
@@ -300,72 +409,33 @@ namespace Dominion.Dominion.Game
             player.Draw(5);
         }
 
-        //end action phase
-        public void EndActionPhase(GameState state)
-        {
-            if (state.IsGameOver)
-            {
-                throw new InvalidOperationException(
-                    "The game is already over.");
-            }
-
-            if (state.Phase != GamePhase.Action)
-            {
-                throw new InvalidOperationException(
-                    "The game is not in the Action phase.");
-            }
-
-            state.Phase = GamePhase.Buy;
-        }
-
-        //start turn
-        private void StartTurn(Player player)
+        private static void StartTurn(Player player)
         {
             player.Actions = 1;
             player.Buys = 1;
             player.Coins = 0;
         }
 
-        //next player
-        private void NextPlayer(GameState state)
+        private void MoveToNextPlayer()
         {
-            state.CurrentPlayerIndex = (state.CurrentPlayerIndex + 1) % state.Players.Count;
-            state.TurnNumber++;
-            state.Phase = GamePhase.Action;
+            State.CurrentPlayerIndex =
+                (State.CurrentPlayerIndex + 1) %
+                State.Players.Count;
+
+            State.TurnNumber++;
+            State.Phase = GamePhase.Action;
         }
 
-        //end turn
-        public void EndTurn(GameState state)
+        private static bool IsAction(Card card)
         {
-            if (state.IsGameOver)
-            {
-                throw new InvalidOperationException(
-                    "The game is already over.");
-            }
-
-            var currentPlayer = state.Players[state.CurrentPlayerIndex];
-
-            Cleanup(currentPlayer);
-            NextPlayer(state);
-
-            var nextPlayer = state.Players[state.CurrentPlayerIndex];
-            StartTurn(nextPlayer);
+            return card.Definition.Types.Contains(
+                CardType.Action);
         }
 
-        //helper
-        private bool IsAction(Card card)
+        private static bool IsTreasure(Card card)
         {
-            return card.Definition.Types.Contains(CardType.Action);
-        }
-
-        private bool IsTreasure(Card card)
-        {
-            return card.Definition.Types.Contains(CardType.Treasure);
-        }
-
-        private bool IsVictory(Card card)
-        {
-            return card.Definition.Types.Contains(CardType.Victory);
+            return card.Definition.Types.Contains(
+                CardType.Treasure);
         }
     }
 }

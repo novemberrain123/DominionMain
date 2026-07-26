@@ -167,7 +167,7 @@ namespace Dominion.Controllers
 
             try
             {
-                engine.PlayCard(state, currentPlayer, card);
+                engine.PlayCard(currentPlayer, card);
             }
             catch (InvalidOperationException exception)
             {
@@ -195,7 +195,7 @@ namespace Dominion.Controllers
 
             try
             {
-                engine.EndActionPhase(state);
+                engine.EndActionPhase();
             }
             catch (InvalidOperationException exception)
             {
@@ -222,7 +222,7 @@ namespace Dominion.Controllers
 
             try
             {
-                engine.BuyCard(state, currentPlayer, request.DefinitionId);
+                engine.BuyCard(currentPlayer, request.DefinitionId);
             }
             catch (InvalidOperationException exception)
             {
@@ -248,7 +248,7 @@ namespace Dominion.Controllers
 
             try
             {
-                engine.EndTurn(state);
+                engine.EndTurn();
             }
             catch (InvalidOperationException exception)
             {
@@ -275,9 +275,7 @@ namespace Dominion.Controllers
 
             try
             {
-                engine.PlayAllTreasures(
-                    state,
-                    currentPlayer);
+                engine.PlayAllTreasures(currentPlayer);
             }
             catch (InvalidOperationException exception)
             {

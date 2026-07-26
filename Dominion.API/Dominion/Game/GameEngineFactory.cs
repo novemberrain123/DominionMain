@@ -40,9 +40,7 @@ namespace Dominion.Dominion.Game
             var state = new GameState();
             state.Initialize(players, supply);
 
-            var engine = new GameEngine(registry, state, _effectResolver);
-
-            _gameSetupService.InitializePlayers(engine, config);
+            var engine = new GameEngine(registry, state, _effectResolver, _gameSetupService, config);
 
             _engineProvider.Add(engine); // inject the engine into the provider for debug tools
 

@@ -21,6 +21,8 @@ namespace Dominion.Dominion.Game
 
         public GameResult? Result { get; set; }
 
+        public GameStatus Status { get; set; } = GameStatus.Lobby;
+
         public List<GameEvent> Events { get; private set; } = new();
 
         public GameState()
