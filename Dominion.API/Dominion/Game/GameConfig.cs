@@ -7,6 +7,7 @@
         public required int StartingHandSize { get; init; }
         public required int StartingActions { get; init; }
         public required int StartingBuys { get; init; }
+        public required int MaxPlayers { get; init; }
         public required Dictionary<string, int> StartingDeck { get; init; }
         public required Dictionary<string, int> Supply { get; init; }
     }

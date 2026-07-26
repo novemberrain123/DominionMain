@@ -1,6 +1,7 @@
 ﻿using Dominion.API.Dominion.Game;
 using Dominion.Dominion.Cards;
 using Dominion.Dominion.Players;
+using Microsoft.Win32;
 
 namespace Dominion.Dominion.Game
 {
@@ -42,9 +43,43 @@ namespace Dominion.Dominion.Game
                     "At least two players are required.");
             }
 
+            _gameSetupService.InitializeSupply(this, _config);
+
             _gameSetupService.InitializePlayers(this, _config);
 
             State.Status = GameStatus.Playing;
+        }
+
+        public Player AddPlayer(string playerName)
+        {
+            if (State.Status != GameStatus.Lobby)
+            {
+                throw new InvalidOperationException(
+                    "Players can only join while the game is in the lobby.");
+            }
+
+            if (string.IsNullOrWhiteSpace(playerName))
+            {
+                throw new ArgumentException(
+                    "Player name is required.",
+                    nameof(playerName));
+            }
+
+            if (State.Players.Count == _config.MaxPlayers)
+            {
+                throw new InvalidOperationException(
+                    "The game is full.");
+            }
+
+            var player = new Player
+            {
+                Id = Guid.NewGuid(),
+                Name = playerName.Trim()
+            };
+
+            State.Players.Add(player);
+
+            return player;
         }
 
         public void PlayAllTreasures(Player player)

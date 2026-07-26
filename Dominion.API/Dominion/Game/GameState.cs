@@ -13,7 +13,7 @@ namespace Dominion.Dominion.Game
         public GamePhase Phase { get; set; }
         public int TurnNumber { get; set; }
 
-        public Dictionary<string, SupplyPile> SupplyPiles { get; private set; } = new();
+        public Dictionary<string, SupplyPile> SupplyPiles { get; set; } = new();
 
         public List<Card> Trash { get; private set; } = new();
 
@@ -33,11 +33,8 @@ namespace Dominion.Dominion.Game
             GameId = gameId;
         }
 
-        public void Initialize(List<Player> players, Dictionary<string, SupplyPile> supply)
+        public void Initialize()
         {
-            Players = players;
-            SupplyPiles = supply;
-
             CurrentPlayerIndex = 0;
             Phase = GamePhase.Action;
             TurnNumber = 1;

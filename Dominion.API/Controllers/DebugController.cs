@@ -1,7 +1,9 @@
 ﻿using Dominion.API.Dominion.Serialization;
 using Dominion.API.Dominion.Serialization.RequestDto;
+using Dominion.Dominion.Cards;
 using Dominion.Dominion.Game;
 using Dominion.Dominion.Game.Debug;
+using Dominion.Dominion.Players;
 using Dominion.Dtos;
 using Microsoft.AspNetCore.Mvc;
 
@@ -44,6 +46,62 @@ namespace Dominion.Controllers
             if (engine is null)
             {
                 return NotFound($"Game {gameId} was not found.");
+            }
+
+            return Ok(GameStateDtoMapper.ToDto(
+                engine.State,
+                engine.Cards));
+        }
+
+        [HttpPost("{gameId:guid}/join")]
+        public ActionResult JoinGame(Guid gameId, [FromBody] JoinGameRequest request)
+        {
+            var engine = _provider.Get(gameId);
+            Player player;
+
+            if (engine is null)
+            {
+                return NotFound($"Game {gameId} was not found.");
+            }
+
+            try
+            {
+                player = engine.AddPlayer(request.PlayerName);
+            }
+            catch (InvalidOperationException exception)
+            {
+                return BadRequest(exception.Message);
+            }
+
+            if (player is null)
+            {
+                return BadRequest("Failed to add player.");
+            }
+
+            return Ok(new 
+            {
+                GameId = gameId,
+                PlayerId = player.Id
+            });
+        }
+
+        [HttpPost("{gameId:guid}/start")]
+        public ActionResult<GameStateDto> StartGame(Guid gameId)
+        {
+            var engine = _provider.Get(gameId);
+
+            if (engine is null)
+            {
+                return NotFound("Game not found.");
+            }
+
+            try
+            {
+                engine.StartGame();
+            }
+            catch (InvalidOperationException exception)
+            {
+                return BadRequest(exception.Message);
             }
 
             return Ok(GameStateDtoMapper.ToDto(

@@ -4,6 +4,7 @@
   "startingHandSize": 6,
   "startingActions": 1,
   "startingBuys": 1,
+  "maxPlayers": 4,
   "startingDeck": {
     "copper": 7,
     "estate": 3,

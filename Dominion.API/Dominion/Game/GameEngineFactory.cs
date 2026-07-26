@@ -30,15 +30,13 @@ namespace Dominion.Dominion.Game
             _gameSetupService = gameSetupService;
         }
 
-        public GameEngine Create(string modePath, string cardsPath, List<Player> players)
+        public GameEngine Create(string modePath, string cardsPath)
         {
             var config = _modeLoader.Load(modePath);
             var registry = _contentLoader.LoadCards(cardsPath);
 
-            var supply = _supplyBuilder.Build(config, registry);
-            
             var state = new GameState();
-            state.Initialize(players, supply);
+            state.Initialize();
 
             var engine = new GameEngine(registry, state, _effectResolver, _gameSetupService, config);
 
@@ -48,15 +46,15 @@ namespace Dominion.Dominion.Game
         }
 
         //for testing
-        public GameEngine Create(string modePath, string cardsPath)
-        {
-            var defaultPlayers = new List<Player>
-                {
-                    new Player { Id = Guid.NewGuid(), Name = "P1" },
-                    new Player { Id = Guid.NewGuid(), Name = "P2" }
-                };
+        //public GameEngine Create(string modePath, string cardsPath)
+        //{
+        //    var defaultPlayers = new List<Player>
+        //        {
+        //            new Player { Id = Guid.NewGuid(), Name = "P1" },
+        //            new Player { Id = Guid.NewGuid(), Name = "P2" }
+        //        };
 
-            return Create(modePath, cardsPath, defaultPlayers);
-        }
+        //    return Create(modePath, cardsPath, defaultPlayers);
+        //}
     }
 }

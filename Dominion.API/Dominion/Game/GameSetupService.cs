@@ -19,6 +19,12 @@ namespace Dominion.Dominion.Game
             }
         }
 
+        public void InitializeSupply(GameEngine engine, GameConfig config)
+        {
+            var supplyBuilder = new SupplyBuilder();
+            engine.State.SupplyPiles = supplyBuilder.Build(config, engine.Cards);
+        }
+
         private void CreateStartingDeck(GameEngine engine, Player player, GameConfig config)
         {
             foreach (var entry in config.StartingDeck)
