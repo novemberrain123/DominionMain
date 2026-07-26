@@ -45,6 +45,44 @@ public static class GameStateDtoMapper
         };
     }
 
+    public static GameStateDto ToDto(
+     GameState state,
+     CardRegistry cardRegistry,
+     Guid? playerId)
+    {
+        var currentPlayer =
+            state.Players.Count > 0 &&
+            state.CurrentPlayerIndex >= 0 &&
+            state.CurrentPlayerIndex < state.Players.Count
+                ? state.Players[state.CurrentPlayerIndex]
+                : null;
+
+        return new GameStateDto
+        {
+            GameId = state.GameId,
+            TurnNumber = state.TurnNumber,
+            Phase = state.Phase,
+            CurrentPlayerIndex = state.CurrentPlayerIndex,
+            CurrentPlayerId = currentPlayer?.Id,
+            Status = state.Status,
+
+            Result = state.Result is null
+                ? null
+                : ToGameResultDto(state.Result),
+
+            Supply = state.SupplyPiles.Values
+                .Select(pile => ToSupplyPileDto(pile, cardRegistry))
+                .ToList(),
+
+            Players = state.Players
+                .Select(ToPlayerDto)
+                .ToList(),
+
+            TrashCount = state.Trash.Count
+        };
+    }
+
+
     private static PlayerDto ToPlayerDto(Player player)
     {
         return new PlayerDto

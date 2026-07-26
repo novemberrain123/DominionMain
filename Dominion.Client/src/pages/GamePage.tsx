@@ -22,6 +22,16 @@ export default function GamePage() {
 
         return localStorage.getItem(`dominion-player-${gameId}`);
     });
+    const [playerToken, setPlayerToken] =
+        useState<string | null>(() => {
+            if (!gameId) {
+                return null;
+            }
+
+            return localStorage.getItem(
+                `dominion-player-token-${gameId}`,
+            );
+        });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const isJoined = playerId !== null;
@@ -108,13 +118,20 @@ export default function GamePage() {
             const result: {
                 gameId: string;
                 playerId: string;
+                playerToken: string;
             } = await response.json();
 
             setPlayerId(result.playerId);
+            setPlayerToken(result.playerToken);
 
             localStorage.setItem(
                 `dominion-player-${gameId}`,
                 result.playerId,
+            );
+
+            localStorage.setItem(
+                `dominion-player-token-${gameId}`,
+                result.playerToken,
             );
 
             await refreshGame();
@@ -133,10 +150,18 @@ export default function GamePage() {
         try {
             setError(null);
 
+            if (!playerToken) {
+                throw new Error("You are not joined to this game.");
+            }
+
+
             const response = await fetch(
                 `${API_BASE_URL}/play-all-treasures`,
                 {
                     method: "POST",
+                    headers: {
+                        "X-Player-Token": playerToken,
+                    },
                 },
             );
 
@@ -178,12 +203,17 @@ export default function GamePage() {
         try {
             setError(null);
 
+            if (!playerToken) {
+                throw new Error("You are not joined to this game.");
+            }
+
             const response = await fetch(
                 `${API_BASE_URL}/games/${game?.gameId}/buy-card`,
                 {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
+                        "X-Player-Token": playerToken,
                     },
                     body: JSON.stringify({
                         definitionId,
@@ -278,12 +308,17 @@ export default function GamePage() {
         try {
             setError(null);
 
+            if (!playerToken) {
+                throw new Error("You are not joined to this game.");
+            }
+
             const response = await fetch(
                 `${API_BASE_URL}/games/${game?.gameId}/play-card`,
                 {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
+                        "X-Player-Token": playerToken,
                     },
                     body: JSON.stringify({
                         cardInstanceId,

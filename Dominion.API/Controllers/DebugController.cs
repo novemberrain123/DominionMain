@@ -22,6 +22,21 @@ namespace Dominion.Controllers
             _factory = factory;
         }
 
+        private Guid ResolvePlayerId(GameEngine engine)
+        {
+            if (!Request.Headers.TryGetValue(
+                    "X-Player-Token",
+                    out var tokenValues))
+            {
+                throw new InvalidOperationException(
+                    "Missing player token.");
+            }
+
+            var token = tokenValues.ToString();
+
+            return engine.GetPlayerIdFromToken(token);
+        }
+
 
         [HttpPost]
         public IActionResult Bootstrap()
@@ -73,10 +88,13 @@ namespace Dominion.Controllers
                 return BadRequest(exception.Message);
             }
 
-            return Ok(new 
+            var token = engine.CreatePlayerSession(player.Id);
+
+            return Ok(new
             {
                 GameId = gameId,
-                PlayerId = player.Id
+                PlayerId = player.Id,
+                PlayerToken = token
             });
         }
 
@@ -104,93 +122,6 @@ namespace Dominion.Controllers
                 engine.Cards));
         }
 
-        //[HttpGet("cards")]
-        //public IActionResult GetCards()
-        //{
-        //    var engine = _provider.Engine!;
-
-        //    return Ok(engine.Cards.GetAllDtos());
-        //}
-
-        //[HttpGet("supply")]
-        //public IActionResult GetSupply()
-        //{
-        //    var engine = _provider.Engine!;
-
-        //    return Ok(engine.State.SupplyPiles.ToDictionary(
-        //        x => x.Key,
-        //        x => new
-        //        {
-        //            x.Value.CardDefId,
-        //            x.Value.Count
-        //        }
-        //    ));
-        //}
-
-
-        //[HttpGet("state")]
-        //public IActionResult GetState()
-        //{
-        //    var engine = _provider.Engine!;
-
-        //    return Ok(new
-        //    {
-        //        turn = engine.State.TurnNumber,
-        //        phase = engine.State.Phase,
-        //        currentPlayerIndex = engine.State.CurrentPlayerIndex,
-
-        //        players = engine.State.Players.Select(p => new
-        //        {
-        //            p.Id,
-        //            p.Name,
-        //            p.Actions,
-        //            p.Buys,
-        //            p.Coins,
-        //            deckSize = p.Deck.Count,
-        //            handSize = p.Hand.Count,
-        //            discardSize = p.DiscardPile.Count
-        //        }),
-
-        //        trashSize = engine.State.Trash.Count,
-        //        eventCount = engine.State.Events.Count,
-        //        isGameOver = engine.State.IsGameOver
-        //    });
-        //}
-
-        //[HttpGet("players")]
-        //public IActionResult GetPlayers()
-        //{
-        //    var engine = _provider.Engine!;
-
-        //    return Ok(
-        //        engine.State.Players.Select(player => new
-        //        {
-        //            player.Id,
-        //            player.Name,
-
-        //            player.Actions,
-        //            player.Buys,
-        //            player.Coins,
-
-        //            Hand = player.Hand.Select(c => new
-        //            {
-        //                c.Definition.Id,
-        //                Types = c.Definition.Types.Select(t => t.ToString()),
-        //                c.Definition.Cost
-        //            }),
-
-        //            DeckCount = player.Deck.Count,
-
-        //            Deck = player.Deck.Select(c => c.Definition.Id),
-
-        //            DiscardPile = player.DiscardPile.Select(c => c.Definition.Id),
-
-        //            InPlay = player.InPlay.Select(c => c.Definition.Id)
-        //        })
-        //    );
-        //}
-
-
         [HttpPost("{gameId:guid}/play-card")]
         public ActionResult<GameStateDto> PlayCard(Guid gameId, [FromBody] PlayCardRequest request)
         {
@@ -208,23 +139,19 @@ namespace Dominion.Controllers
                 return BadRequest("The game is already over.");
             }
 
-            var currentPlayer = state.Players[state.CurrentPlayerIndex];
-
-            var card = currentPlayer.Hand
-                .FirstOrDefault(card => card.Id == request.CardInstanceId);
-
-            if (card is null)
-            {
-                return BadRequest("The selected card is not in the current player's hand.");
-            }
-
             try
             {
-                engine.PlayCard(currentPlayer, card);
+                var playerId = ResolvePlayerId(engine);
+
+                engine.PlayCard(playerId, request.CardInstanceId);
             }
             catch (InvalidOperationException exception)
             {
                 return BadRequest(exception.Message);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(ex.Message);
             }
 
             var dto = GameStateDtoMapper.ToDto(
@@ -271,15 +198,20 @@ namespace Dominion.Controllers
             }
 
             var state = engine.State;
-            var currentPlayer = state.Players[state.CurrentPlayerIndex];
 
             try
             {
-                engine.BuyCard(currentPlayer, request.DefinitionId);
+                var playerId = ResolvePlayerId(engine);
+
+                engine.BuyCard(playerId, request.DefinitionId);
             }
             catch (InvalidOperationException exception)
             {
                 return BadRequest(exception.Message);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(ex.Message);
             }
 
             return Ok(GameStateDtoMapper.ToDto(
@@ -324,15 +256,20 @@ namespace Dominion.Controllers
             }
 
             var state = engine.State;
-            var currentPlayer = state.Players[state.CurrentPlayerIndex];
 
             try
             {
-                engine.PlayAllTreasures(currentPlayer);
+                var playerId = ResolvePlayerId(engine);
+
+                engine.PlayAllTreasures(playerId);
             }
             catch (InvalidOperationException exception)
             {
                 return BadRequest(exception.Message);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(ex.Message);
             }
 
             return Ok(GameStateDtoMapper.ToDto(

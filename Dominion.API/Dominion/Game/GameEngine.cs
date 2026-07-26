@@ -2,6 +2,7 @@
 using Dominion.Dominion.Cards;
 using Dominion.Dominion.Players;
 using Microsoft.Win32;
+using System.Security.Cryptography;
 
 namespace Dominion.Dominion.Game
 {
@@ -9,7 +10,7 @@ namespace Dominion.Dominion.Game
     {
         public CardRegistry Cards { get; }
         public GameState State { get; }
-
+        private readonly Dictionary<string, Guid> _playerSessions = new();
         private readonly EffectResolver _effectResolver;
         private readonly GameSetupService _gameSetupService;
         private readonly GameConfig _config;
@@ -50,6 +51,28 @@ namespace Dominion.Dominion.Game
             State.Status = GameStatus.Playing;
         }
 
+
+        public string CreatePlayerSession(Guid playerId)
+        {
+            var token = Convert.ToHexString(
+                RandomNumberGenerator.GetBytes(32));
+
+            _playerSessions[token] = playerId;
+
+            return token;
+        }
+
+        public Guid GetPlayerIdFromToken(string token)
+        {
+            if (!_playerSessions.TryGetValue(token, out var playerId))
+            {
+                throw new InvalidOperationException(
+                    "Invalid player token.");
+            }
+
+            return playerId;
+        }
+
         public Player AddPlayer(string playerName)
         {
             if (State.Status != GameStatus.Lobby)
@@ -82,21 +105,36 @@ namespace Dominion.Dominion.Game
             return player;
         }
 
-        public void PlayAllTreasures(Player player)
+        public void PlayAllTreasures(Guid playerId)
         {
+            var player = State.Players
+                .SingleOrDefault(p => p.Id == playerId)
+                ?? throw new InvalidOperationException(
+                    "Player does not exist.");
+
             var treasures = player.Hand
                 .Where(IsTreasure)
                 .ToList();
 
             foreach (var treasure in treasures)
             {
-                PlayCard(player, treasure);
+                PlayCard(playerId, treasure.Id);
             }
         }
 
         // Action and treasure play
-        public void PlayCard(Player player, Card card)
+        public void PlayCard(Guid playerId, Guid cardInstanceId)
         {
+            var player = State.Players
+                .SingleOrDefault(p => p.Id == playerId)
+                ?? throw new InvalidOperationException(
+                    "Player does not exist.");
+
+            var card = player.Hand
+                .SingleOrDefault(c => c.Id == cardInstanceId)
+                ?? throw new InvalidOperationException(
+                    "The selected card is not in the player's hand.");
+
             ValidateCanPlay(player, card);
 
             MoveToInPlay(player, card);
@@ -202,8 +240,13 @@ namespace Dominion.Dominion.Game
         }
 
         // Buy phase
-        public void BuyCard(Player player, string cardDefinitionId)
+        public void BuyCard(Guid playerId, string cardDefinitionId)
         {
+            var player = State.Players
+                .SingleOrDefault(p => p.Id == playerId)
+                ?? throw new InvalidOperationException(
+                    "Player does not exist.");
+
             var cardDefinition = Cards.Get(cardDefinitionId);
 
             ValidateCanBuy(player, cardDefinition);
