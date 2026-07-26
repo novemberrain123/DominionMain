@@ -150,7 +150,7 @@ namespace Dominion.Controllers
 
             var state = engine.State;
 
-            if (state.IsGameOver)
+            if (state.Status == GameStatus.Finished)
             {
                 return BadRequest("The game is already over.");
             }

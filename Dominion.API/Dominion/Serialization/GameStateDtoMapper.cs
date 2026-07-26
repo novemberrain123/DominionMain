@@ -28,7 +28,7 @@ public static class GameStateDtoMapper
             Phase = state.Phase,
             CurrentPlayerIndex = state.CurrentPlayerIndex,
             CurrentPlayerId = currentPlayer.Id,
-            IsGameOver = state.IsGameOver,
+            Status = state.Status,
 
             Result = state.Result is null
                 ? null

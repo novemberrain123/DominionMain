@@ -1,5 +1,6 @@
 
 type CardType = "action" | "treasure" | "victory" | "attack" | "reaction";
+type GameStatus = "lobby" | "playing" | "finished";
 
 export interface CardDto  {
     instanceId: string;
@@ -35,7 +36,7 @@ export interface GameStateDto  {
     phase: string;
     currentPlayerIndex: number;
     currentPlayerId: string;
-    isGameOver: boolean;
+    Status: GameStatus;
     players: PlayerDto[];
     supply: SupplyPileDto[];
     trashCount: number;

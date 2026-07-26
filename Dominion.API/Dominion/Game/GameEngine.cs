@@ -95,7 +95,7 @@ namespace Dominion.Dominion.Game
             Card card,
             out string? error)
         {
-            if (State.IsGameOver)
+            if (State.Status == GameStatus.Finished)
             {
                 error = "The game is already over.";
                 return false;
@@ -195,7 +195,7 @@ namespace Dominion.Dominion.Game
             CardDefinition card,
             out string? error)
         {
-            if (State.IsGameOver)
+            if (State.Status == GameStatus.Finished)
             {
                 error = "The game is already over.";
                 return false;
@@ -295,7 +295,7 @@ namespace Dominion.Dominion.Game
 
         private void EndGame()
         {
-            State.IsGameOver = true;
+            State.Status = GameStatus.Finished;
             State.Result = CalculateResults();
 
             State.Events.Add(new GameEvent
@@ -362,7 +362,7 @@ namespace Dominion.Dominion.Game
         // Phase transition
         public void EndActionPhase()
         {
-            if (State.IsGameOver)
+            if (State.Status == GameStatus.Finished)
             {
                 throw new InvalidOperationException(
                     "The game is already over.");
@@ -380,7 +380,7 @@ namespace Dominion.Dominion.Game
         // Turn transition
         public void EndTurn()
         {
-            if (State.IsGameOver)
+            if (State.Status == GameStatus.Finished)
             {
                 throw new InvalidOperationException(
                     "The game is already over.");

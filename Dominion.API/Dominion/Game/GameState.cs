@@ -17,8 +17,6 @@ namespace Dominion.Dominion.Game
 
         public List<Card> Trash { get; private set; } = new();
 
-        public bool IsGameOver { get; set; }
-
         public GameResult? Result { get; set; }
 
         public GameStatus Status { get; set; } = GameStatus.Lobby;
@@ -43,7 +41,7 @@ namespace Dominion.Dominion.Game
             CurrentPlayerIndex = 0;
             Phase = GamePhase.Action;
             TurnNumber = 1;
-            IsGameOver = false;
+            Status = GameStatus.Lobby;
 
             Trash.Clear();
             Events.Clear();

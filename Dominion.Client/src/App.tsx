@@ -298,7 +298,7 @@ export default function DominionBoard() {
                             <button
                                 type="button"
                                 onClick={() => void playAllTreasures()}
-                                disabled={game.isGameOver}
+                                disabled={game.Status == "finished"}
                                 className="rounded-xl bg-amber-600 px-4 py-2 font-semibold text-white transition hover:bg-amber-500 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 Play All Treasures
@@ -308,7 +308,7 @@ export default function DominionBoard() {
                         <button
                             type="button"
                             onClick={() => void nextPhase()}
-                            disabled={game.isGameOver}
+                            disabled={game.Status == "finished"}
                             className="rounded-xl bg-yellow-300 px-4 py-2 font-semibold text-black transition hover:bg-yellow-200 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             {game.phase === "action"
@@ -370,7 +370,7 @@ export default function DominionBoard() {
                 />
             )}
 
-            {game.isGameOver && game.result && (
+            {game.Status && game.result && (
                 <GameResultModal
                     result={game.result}
                     players={game.players}
