@@ -73,11 +73,6 @@ namespace Dominion.Controllers
                 return BadRequest(exception.Message);
             }
 
-            if (player is null)
-            {
-                return BadRequest("Failed to add player.");
-            }
-
             return Ok(new 
             {
                 GameId = gameId,

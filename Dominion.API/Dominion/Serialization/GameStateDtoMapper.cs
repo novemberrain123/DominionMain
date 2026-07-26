@@ -13,13 +13,12 @@ public static class GameStateDtoMapper
         GameState state,
         CardRegistry cardRegistry)
     {
-        if (state.Players.Count == 0)
-        {
-            throw new InvalidOperationException(
-                "Cannot create a game-state DTO before the game is initialized.");
-        }
-
-        var currentPlayer = state.Players[state.CurrentPlayerIndex];
+        var currentPlayer =
+            state.Players.Count > 0 &&
+            state.CurrentPlayerIndex >= 0 &&
+            state.CurrentPlayerIndex < state.Players.Count
+                ? state.Players[state.CurrentPlayerIndex]
+                : null;
 
         return new GameStateDto
         {
@@ -27,7 +26,7 @@ public static class GameStateDtoMapper
             TurnNumber = state.TurnNumber,
             Phase = state.Phase,
             CurrentPlayerIndex = state.CurrentPlayerIndex,
-            CurrentPlayerId = currentPlayer.Id,
+            CurrentPlayerId = currentPlayer?.Id,
             Status = state.Status,
 
             Result = state.Result is null

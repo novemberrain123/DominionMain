@@ -36,7 +36,7 @@ export interface GameStateDto  {
     phase: string;
     currentPlayerIndex: number;
     currentPlayerId: string;
-    Status: GameStatus;
+    status: GameStatus;
     players: PlayerDto[];
     supply: SupplyPileDto[];
     trashCount: number;
@@ -51,4 +51,8 @@ export interface PlayerResultDto {
 
 export interface GameResultDto {
     playerResults: PlayerResultDto[];
+}
+
+export interface JoinGameResponse {
+    playerId: string;
 }

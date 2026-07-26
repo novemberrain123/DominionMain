@@ -1,0 +1,712 @@
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import GameResultModal from "../components/GameResultModal";
+import * as GameDto from "../api/game";
+import Lobby from "../components/Lobby";
+
+
+const API_BASE_URL = "https://localhost:7268/debug";
+
+export default function GamePage() {
+    const navigate = useNavigate();
+    const { gameId } = useParams<{ gameId: string }>();
+
+    const [game, setGame] = useState<GameDto.GameStateDto | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [playerName, setPlayerName] = useState("");
+    const [playerId, setPlayerId] = useState<string | null>(() => {
+        if (!gameId) {
+            return null;
+        }
+
+        return localStorage.getItem(`dominion-player-${gameId}`);
+    });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const isJoined = playerId !== null;
+
+
+    useEffect(() => {
+        if (!gameId) {
+            setError("No game ID was provided.");
+            setIsLoading(false);
+            return;
+        }
+
+        void loadGame(gameId);
+    }, [gameId]);
+
+    async function loadGame(id: string) {
+        try {
+            setError(null);
+
+            const response = await fetch(
+                `${API_BASE_URL}/games/${id}`,
+            );
+
+            if (!response.ok) {
+                const message = await response.text();
+
+                throw new Error(
+                    message || `Failed to load game: ${response.status}`,
+                );
+            }
+
+            const loadedGame: GameDto.GameStateDto = await response.json();
+            setGame(loadedGame);
+        } catch (error) {
+            setError(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to load game.",
+            );
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+
+    async function refreshGame() {
+        if (!gameId) {
+            return;
+        }
+
+        await loadGame(gameId);
+    }
+
+    async function joinGame() {
+        if (!gameId || !playerName.trim()) {
+            return;
+        }
+
+        try {
+            setError(null);
+            setIsSubmitting(true);
+
+            const response = await fetch(
+                `${API_BASE_URL}/games/${gameId}/join`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        playerName: playerName.trim(),
+                    }),
+                },
+            );
+
+            if (!response.ok) {
+                const message = await response.text();
+
+                throw new Error(
+                    message || `Failed to join game: ${response.status}`,
+                );
+            }
+
+            const result: {
+                gameId: string;
+                playerId: string;
+            } = await response.json();
+
+            setPlayerId(result.playerId);
+
+            localStorage.setItem(
+                `dominion-player-${gameId}`,
+                result.playerId,
+            );
+
+            await refreshGame();
+        } catch (error) {
+            setError(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to join game.",
+            );
+        } finally {
+            setIsSubmitting(false);
+        }
+    }
+
+    async function playAllTreasures() {
+        try {
+            setError(null);
+
+            const response = await fetch(
+                `${API_BASE_URL}/play-all-treasures`,
+                {
+                    method: "POST",
+                },
+            );
+
+            if (!response.ok) {
+                const message = await response.text();
+
+                throw new Error(
+                    message ||
+                    `Failed to play treasures: ${response.status}`,
+                );
+            }
+
+            const updatedGame: GameDto.GameStateDto =
+                await response.json();
+
+            setGame(updatedGame);
+        } catch (error) {
+            setError(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to play treasures.",
+            );
+        }
+    }
+
+    async function nextPhase() {
+        if (!game) {
+            return;
+        }
+
+        if (game.phase === "action") {
+            await endActionPhase();
+        } else if (game.phase === "buy") {
+            await endTurn();
+        }
+    }
+
+    async function buyCard(definitionId: string) {
+        try {
+            setError(null);
+
+            const response = await fetch(
+                `${API_BASE_URL}/games/${game?.gameId}/buy-card`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        definitionId,
+                    }),
+                },
+            );
+
+            if (!response.ok) {
+                const message = await response.text();
+
+                throw new Error(
+                    message ||
+                    `Failed to buy card: ${response.status}`,
+                );
+            }
+
+            const updatedGame: GameDto.GameStateDto = await response.json();
+            setGame(updatedGame);
+        } catch (error) {
+            setError(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to buy card.",
+            );
+        }
+    }
+
+    async function endTurn() {
+        try {
+            setError(null);
+
+            const response = await fetch(
+                `${API_BASE_URL}/games/${game?.gameId}/end-turn`,
+                {
+                    method: "POST",
+                },
+            );
+
+            if (!response.ok) {
+                const message = await response.text();
+
+                throw new Error(
+                    message ||
+                    `Failed to end turn: ${response.status}`,
+                );
+            }
+
+            const updatedGame: GameDto.GameStateDto = await response.json();
+            setGame(updatedGame);
+        } catch (error) {
+            setError(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to end turn.",
+            );
+        }
+    }
+
+    async function endActionPhase() {
+        try {
+            setError(null);
+
+            const response = await fetch(
+                `${API_BASE_URL}/games/${game?.gameId}/end-action-phase`,
+                {
+                    method: "POST",
+                },
+            );
+
+            if (!response.ok) {
+                const message = await response.text();
+
+                throw new Error(
+                    message ||
+                    `Failed to end action phase: ${response.status}`,
+                );
+            }
+
+            const updatedGame: GameDto.GameStateDto = await response.json();
+            setGame(updatedGame);
+        } catch (error) {
+            setError(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to end action phase.",
+            );
+        }
+    }
+
+
+    async function playCard(cardInstanceId: string) {
+        try {
+            setError(null);
+
+            const response = await fetch(
+                `${API_BASE_URL}/games/${game?.gameId}/play-card`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        cardInstanceId,
+                    }),
+                },
+            );
+
+            if (!response.ok) {
+                const message = await response.text();
+
+                throw new Error(
+                    message || `Failed to play card: ${response.status}`,
+                );
+            }
+
+            const updatedGame: GameDto.GameStateDto = await response.json();
+            setGame(updatedGame);
+        } catch (error) {
+            setError(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to play card.",
+            );
+        }
+    }
+
+    async function startGame() {
+        if (!gameId) {
+            return;
+        }
+
+        try {
+            setError(null);
+            setIsSubmitting(true);
+
+            const response = await fetch(
+                `${API_BASE_URL}/games/${gameId}/start`,
+                {
+                    method: "POST",
+                },
+            );
+
+            if (!response.ok) {
+                const message = await response.text();
+
+                throw new Error(
+                    message || `Failed to start game: ${response.status}`,
+                );
+            }
+
+            await refreshGame();
+        } catch (error) {
+            setError(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to start game.",
+            );
+        } finally {
+            setIsSubmitting(false);
+        }
+    }
+
+    if (isLoading) {
+        return <main>Loading game...</main>;
+    }
+
+    if (!game) {
+        return <main>{error ?? "Game not found."}</main>;
+    }
+
+    console.log("Game status:", game.status);
+    if (game.status === "lobby") {
+        return (
+            <Lobby
+                game={game}
+                playerName={playerName}
+                isJoined={isJoined}
+                isSubmitting={isSubmitting}
+                error={error}
+                onPlayerNameChange={setPlayerName}
+                onJoin={joinGame}
+                onStart={startGame}
+            />
+        );
+    }
+
+    return (
+        <main className="min-h-screen bg-green-950 p-6 text-white">
+            <div className="mx-auto flex max-w-7xl flex-col gap-8">
+                <header className="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <h1 className="text-4xl font-bold tracking-tight">
+                            Dominion
+                        </h1>
+
+                        <p className="mt-1 text-white/70">
+                            Turn {game.turnNumber} · Phase: {game.phase}
+                        </p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-3">
+                        {game.phase === "buy" && (
+                            <button
+                                type="button"
+                                onClick={() => void playAllTreasures()}
+                                disabled={game.status == "finished"}
+                                className="rounded-xl bg-amber-600 px-4 py-2 font-semibold text-white transition hover:bg-amber-500 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                Play All Treasures
+                            </button>
+                        )}
+
+                        <button
+                            type="button"
+                            onClick={() => void nextPhase()}
+                            disabled={game.status == "finished"}
+                            className="rounded-xl bg-yellow-300 px-4 py-2 font-semibold text-black transition hover:bg-yellow-200 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            {game.phase === "action"
+                                ? "End Action Phase"
+                                : "End Turn"}
+                        </button>
+                    </div>
+
+                    <div className="flex gap-3">
+                        <Stat
+                            label="Current Player"
+                            value={game.currentPlayerIndex + 1}
+                        />
+
+                        <Stat
+                            label="Trash"
+                            value={game.trashCount}
+                        />
+                    </div>
+                </header>
+
+                <section>
+                    <h2 className="mb-4 text-2xl font-semibold">
+                        Supply
+                    </h2>
+
+                    <div className="flex flex-wrap gap-3">
+                        {game.supply.map((pile) => (
+                            <SupplyCard
+                                key={pile.definitionId}
+                                pile={pile}
+                                onClick={
+                                    game.phase === "buy"
+                                        ? () => buyCard(pile.definitionId)
+                                        : undefined
+                                }
+                            />
+                        ))}
+                    </div>
+                </section>
+
+                <section className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                    {game.players.map((player) => (
+                        <PlayerBoard
+                            key={player.id}
+                            player={player}
+                            isCurrentPlayer={
+                                player.id === game.currentPlayerId
+                            }
+                            onPlayCard={playCard}
+                        />
+                    ))}
+                </section>
+            </div>
+            {error && (
+                <ErrorModal
+                    message={error}
+                    onClose={() => setError(null)}
+                />
+            )}
+
+            {game.status == "finished" && game.result && (
+                <GameResultModal
+                    result={game.result}
+                    players={game.players}
+                    onNewGame={() => navigate("/")}
+                />
+            )}
+        </main>
+    );
+}
+
+function ErrorModal({
+    message,
+    onClose,
+}: {
+    message: string;
+    onClose: () => void;
+}) {
+    return (
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="error-modal-title"
+        >
+            <div className="w-full max-w-md rounded-2xl bg-white p-6 text-black shadow-2xl">
+                <h2
+                    id="error-modal-title"
+                    className="text-xl font-bold"
+                >
+                    Invalid action
+                </h2>
+
+                <p className="mt-3 whitespace-pre-wrap text-gray-700">
+                    {message}
+                </p>
+
+                <div className="mt-6 flex justify-end">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        autoFocus
+                        className="rounded-xl bg-red-600 px-4 py-2 font-semibold text-white transition hover:bg-red-500"
+                    >
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+function PlayerBoard({
+    player,
+    isCurrentPlayer,
+    onPlayCard,
+}: {
+    player: GameDto.PlayerDto;
+    isCurrentPlayer: boolean;
+    onPlayCard: (cardInstanceId: string) => void;
+}) {
+    return (
+        <article
+            className={[
+                "rounded-3xl border bg-black/20 p-6 shadow-2xl",
+                isCurrentPlayer
+                    ? "border-yellow-300"
+                    : "border-white/10",
+            ].join(" ")}
+        >
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+                <div>
+                    <h2 className="text-2xl font-semibold">
+                        {player.name}
+                    </h2>
+
+                    <p className="text-sm text-white/70">
+                        {isCurrentPlayer
+                            ? "Current player"
+                            : "Waiting"}
+                    </p>
+                </div>
+
+                <div className="flex gap-3">
+                    <Stat label="Actions" value={player.actions} />
+                    <Stat label="Buys" value={player.buys} />
+                    <Stat label="Coins" value={player.coins} />
+                </div>
+            </div>
+
+            <CardZone
+                title="Hand"
+                cards={player.hand}
+                onCardClick={
+                    isCurrentPlayer
+                        ? onPlayCard
+                        : undefined
+                }
+            />
+
+            <CardZone
+                title="In Play"
+                cards={player.inPlay}
+            />
+
+            <CardZone
+                title={`Deck (${player.deck.length})`}
+                cards={player.deck}
+            />
+
+            <CardZone
+                title={`Discard Pile (${player.discardPile.length})`}
+                cards={player.discardPile}
+            />
+        </article>
+    );
+}
+function CardZone({
+    title,
+    cards,
+    onCardClick,
+}: {
+    title: string;
+    cards: GameDto.CardDto[];
+    onCardClick?: (cardInstanceId: string) => void;
+}) {
+    return (
+        <section className="mb-6 last:mb-0">
+            <h3 className="mb-3 text-lg font-medium">
+                {title}
+            </h3>
+
+            {cards.length === 0 ? (
+                <p className="text-sm text-white/50">
+                    Empty
+                </p>
+            ) : (
+                <div className="flex flex-wrap gap-3">
+                    {cards.map((card) => (
+                        <Card
+                            key={card.instanceId}
+                            card={card}
+                            onClick={
+                                onCardClick
+                                    ? () =>
+                                        onCardClick(
+                                            card.instanceId,
+                                        )
+                                    : undefined
+                            }
+                        />
+                    ))}
+                </div>
+            )}
+        </section>
+    );
+}
+
+function Stat({
+    label,
+    value,
+}: {
+    label: string;
+    value: number;
+}) {
+    return (
+        <div className="rounded-2xl bg-white/10 px-4 py-2 text-center">
+            <div className="text-xs uppercase tracking-wide text-white/60">
+                {label}
+            </div>
+
+            <div className="text-xl font-bold">
+                {value}
+            </div>
+        </div>
+    );
+}
+function Card({
+    card,
+    onClick,
+}: {
+    card: GameDto.CardDto;
+    onClick?: () => void;
+}) {
+    const className = [
+        "flex h-40 w-28 flex-col justify-between rounded-2xl",
+        "border border-black/20 bg-yellow-100 p-3 text-black shadow-lg",
+        onClick
+            ? "cursor-pointer transition hover:-translate-y-1 hover:shadow-xl"
+            : "",
+    ].join(" ");
+
+    const content = (
+        <>
+            <div className="text-xs font-semibold uppercase tracking-wide text-black/60">
+                {card.types.join(" · ")}
+            </div>
+
+            <div className="text-center text-lg font-bold">
+                {card.name}
+            </div>
+
+            <div className="flex items-end justify-between text-sm font-medium text-black/60">
+                <span>{card.definitionId}</span>
+                <span>Cost {card.cost}</span>
+            </div>
+        </>
+    );
+
+    if (onClick) {
+        return (
+            <button
+                type="button"
+                className={className}
+                onClick={onClick}
+            >
+                {content}
+            </button>
+        );
+    }
+
+    return <div className={className}>{content}</div>;
+}
+function SupplyCard({
+    pile,
+    onClick,
+}: {
+    pile: GameDto.SupplyPileDto;
+    onClick?: () => void;
+}) {
+    return (
+        <div className="relative">
+            <Card
+                card={{
+                    instanceId: pile.definitionId,
+                    definitionId: pile.definitionId,
+                    name: pile.name,
+                    cost: pile.cost,
+                    types: pile.types,
+                }}
+                onClick={onClick}
+            />
+
+            <div className="absolute -right-2 -top-2 rounded-full bg-black px-2 py-1 text-sm font-bold text-white">
+                {pile.remaining}
+            </div>
+        </div>
+    );
+}
+

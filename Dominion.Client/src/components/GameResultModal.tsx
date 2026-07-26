@@ -1,12 +1,12 @@
 import type {
     GameResultDto,
     PlayerDto,
-} from "./api/game";
+} from "../api/game";
 
 interface GameResultModalProps {
     result: GameResultDto;
     players: PlayerDto[];
-    onNewGame: () => Promise<void>;
+    onNewGame: () => void;
 }
 
 export default function GameResultModal({
@@ -101,10 +101,10 @@ export default function GameResultModal({
                 <div className="mt-6 flex justify-end">
                     <button
                         type="button"
-                        onClick={() => void onNewGame()}
+                        onClick={onNewGame}
                         className="rounded-xl bg-green-700 px-4 py-2 font-semibold text-white transition hover:bg-green-600"
                     >
-                        New Game
+                        Return Home
                     </button>
                 </div>
             </div>

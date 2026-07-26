@@ -10,7 +10,7 @@ public class GameStateDto
     public required int TurnNumber { get; init; }
     public required GamePhase Phase { get; init; }
     public required int CurrentPlayerIndex { get; init; }
-    public required Guid CurrentPlayerId { get; init; }
+    public required Guid? CurrentPlayerId { get; init; }
     public required GameStatus Status { get; init; }
 
     public required List<PlayerDto> Players { get; init; }
