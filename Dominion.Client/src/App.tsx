@@ -10,6 +10,39 @@ export default function DominionBoard() {
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
+    async function bootstrapGame() {
+        try {
+            setError(null);
+
+            const response = await fetch(
+                `${API_BASE_URL}/debug/bootstrap`,
+                {
+                    method: "POST",
+                },
+            );
+
+            if (!response.ok) {
+                const message = await response.text();
+
+                throw new Error(
+                    message ||
+                    `Failed to create game: ${response.status}`,
+                );
+            }
+
+            const newGame: GameDto.GameStateDto =
+                await response.json();
+
+            setGame(newGame);
+        } catch (error) {
+            setError(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to create game.",
+            );
+        }
+    }
+
     async function nextPhase() {
         if (!game) {
             return;
@@ -280,7 +313,11 @@ export default function DominionBoard() {
             )}
 
             {game.isGameOver && game.result && (
-                <GameResultModal result={game.result} players={game.players} />
+                <GameResultModal
+                    result={game.result}
+                    players={game.players}
+                    onNewGame={bootstrapGame}
+                />
             )}
         </main>
     );

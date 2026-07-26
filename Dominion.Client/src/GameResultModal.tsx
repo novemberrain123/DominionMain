@@ -6,11 +6,13 @@ import type {
 interface GameResultModalProps {
     result: GameResultDto;
     players: PlayerDto[];
+    onNewGame: () => Promise<void>;
 }
 
 export default function GameResultModal({
     result,
     players,
+    onNewGame,
 }: GameResultModalProps) {
     const playersById = new Map(
         players.map(player => [player.id, player]),
@@ -99,9 +101,7 @@ export default function GameResultModal({
                 <div className="mt-6 flex justify-end">
                     <button
                         type="button"
-                        onClick={() =>
-                            window.location.reload()
-                        }
+                        onClick={() => void onNewGame()}
                         className="rounded-xl bg-green-700 px-4 py-2 font-semibold text-white transition hover:bg-green-600"
                     >
                         New Game

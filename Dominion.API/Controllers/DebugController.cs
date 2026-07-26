@@ -21,7 +21,7 @@ namespace Dominion.Controllers
         }
 
 
-        [HttpGet("bootstrap")]
+        [HttpPost("bootstrap")]
         public IActionResult Bootstrap()
         {
             var engine = _factory.Create(
@@ -29,13 +29,11 @@ namespace Dominion.Controllers
                 "Content/Cards/test.json"
             );
 
-            return Ok(new
-            {
-                cardCount = engine.Cards.Count,
-                card = engine.Cards.GetAllDtos(),
-                supplyCount = engine.State.SupplyPiles.Count,
-                supply = engine.State.SupplyPiles.ToDictionary(x => x.Key, x => x.Value.Count)
-            });
+            var state = engine.State;
+
+            return Ok(GameStateDtoMapper.ToDto(
+                        state,
+                        engine.Cards));
         }
 
         [HttpGet("cards")]
