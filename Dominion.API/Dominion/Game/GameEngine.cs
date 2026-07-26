@@ -30,8 +30,28 @@ namespace Dominion.Dominion.Game
             _config = config;
         }
 
-        public void StartGame()
+        private void EnsureCurrentPlayer(Guid playerId)
         {
+            if (State.Players.Count == 0)
+            {
+                throw new InvalidOperationException(
+                    "The game has no players.");
+            }
+
+            var currentPlayer =
+                State.Players[State.CurrentPlayerIndex];
+
+            if (currentPlayer.Id != playerId)
+            {
+                throw new InvalidOperationException(
+                    "It is not your turn.");
+            }
+        }
+
+        public void StartGame(Guid playerId)
+        {
+            EnsureCurrentPlayer(playerId);
+
             if (State.Status != GameStatus.Lobby)
             {
                 throw new InvalidOperationException(
@@ -438,8 +458,10 @@ namespace Dominion.Dominion.Game
         }
 
         // Phase transition
-        public void EndActionPhase()
+        public void EndActionPhase(Guid playerId)
         {
+            EnsureCurrentPlayer(playerId);
+
             if (State.Status == GameStatus.Finished)
             {
                 throw new InvalidOperationException(
@@ -456,8 +478,10 @@ namespace Dominion.Dominion.Game
         }
 
         // Turn transition
-        public void EndTurn()
+        public void EndTurn(Guid playerId)
         {
+            EnsureCurrentPlayer(playerId);
+
             if (State.Status == GameStatus.Finished)
             {
                 throw new InvalidOperationException(

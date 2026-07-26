@@ -28,6 +28,8 @@ export interface PlayerDto  {
     deck: CardDto[];
     discardPile: CardDto[];
     inPlay: CardDto[];
+    handCount: number;
+    deckCount: number;
 };
 
 export interface GameStateDto  {

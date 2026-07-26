@@ -34,6 +34,13 @@ export default function GamePage() {
         });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const isMyTurn =
+        game?.currentPlayerId === playerId;
+
+    const canBuyCards =
+        isMyTurn &&
+        game.phase === "buy";
+
     const isJoined = playerId !== null;
 
 
@@ -53,6 +60,14 @@ export default function GamePage() {
 
             const response = await fetch(
                 `${API_BASE_URL}/games/${id}`,
+                {
+                    method: "GET",
+                    headers: {
+                        ...(playerToken && {
+                            "X-Player-Token": playerToken,
+                        }),
+                    },
+                },
             );
 
             if (!response.ok) {
@@ -156,7 +171,7 @@ export default function GamePage() {
 
 
             const response = await fetch(
-                `${API_BASE_URL}/play-all-treasures`,
+                `${API_BASE_URL}/games/${gameId}/play-all-treasures`,
                 {
                     method: "POST",
                     headers: {
@@ -249,6 +264,11 @@ export default function GamePage() {
                 `${API_BASE_URL}/games/${game?.gameId}/end-turn`,
                 {
                     method: "POST",
+                    headers: {
+                        ...(playerToken && {
+                            "X-Player-Token": playerToken,
+                        }),
+                    },
                 },
             );
 
@@ -280,6 +300,11 @@ export default function GamePage() {
                 `${API_BASE_URL}/games/${game?.gameId}/end-action-phase`,
                 {
                     method: "POST",
+                    headers: {
+                        ...(playerToken && {
+                            "X-Player-Token": playerToken,
+                        }),
+                    },
                 },
             );
 
@@ -358,6 +383,11 @@ export default function GamePage() {
                 `${API_BASE_URL}/games/${gameId}/start`,
                 {
                     method: "POST",
+                    headers: {
+                        ...(playerToken && {
+                            "X-Player-Token": playerToken,
+                        }),
+                    },
                 },
             );
 
@@ -424,7 +454,7 @@ export default function GamePage() {
                             <button
                                 type="button"
                                 onClick={() => void playAllTreasures()}
-                                disabled={game.status == "finished"}
+                                disabled={game.status == "finished" || !isMyTurn}
                                 className="rounded-xl bg-amber-600 px-4 py-2 font-semibold text-white transition hover:bg-amber-500 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 Play All Treasures
@@ -434,7 +464,7 @@ export default function GamePage() {
                         <button
                             type="button"
                             onClick={() => void nextPhase()}
-                            disabled={game.status == "finished"}
+                            disabled={game.status == "finished" || !isMyTurn}
                             className="rounded-xl bg-yellow-300 px-4 py-2 font-semibold text-black transition hover:bg-yellow-200 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             {game.phase === "action"
@@ -467,7 +497,7 @@ export default function GamePage() {
                                 key={pile.definitionId}
                                 pile={pile}
                                 onClick={
-                                    game.phase === "buy"
+                                    canBuyCards
                                         ? () => buyCard(pile.definitionId)
                                         : undefined
                                 }
@@ -483,6 +513,9 @@ export default function GamePage() {
                             player={player}
                             isCurrentPlayer={
                                 player.id === game.currentPlayerId
+                            }
+                            isViewingPlayer={
+                                player.id === playerId
                             }
                             onPlayCard={playCard}
                         />
@@ -547,15 +580,23 @@ function ErrorModal({
         </div>
     );
 }
+
 function PlayerBoard({
     player,
     isCurrentPlayer,
+    isViewingPlayer,
     onPlayCard,
 }: {
     player: GameDto.PlayerDto;
     isCurrentPlayer: boolean;
+    isViewingPlayer: boolean;
     onPlayCard: (cardInstanceId: string) => void;
 }) {
+    const canPlayCards =
+        isCurrentPlayer &&
+        isViewingPlayer &&
+        player.hand !== null;
+
     return (
         <article
             className={[
@@ -569,6 +610,7 @@ function PlayerBoard({
                 <div>
                     <h2 className="text-2xl font-semibold">
                         {player.name}
+                        {isViewingPlayer ? " (You)" : ""}
                     </h2>
 
                     <p className="text-sm text-white/70">
@@ -579,17 +621,26 @@ function PlayerBoard({
                 </div>
 
                 <div className="flex gap-3">
-                    <Stat label="Actions" value={player.actions} />
-                    <Stat label="Buys" value={player.buys} />
-                    <Stat label="Coins" value={player.coins} />
+                    <Stat
+                        label="Actions"
+                        value={player.actions}
+                    />
+                    <Stat
+                        label="Buys"
+                        value={player.buys}
+                    />
+                    <Stat
+                        label="Coins"
+                        value={player.coins}
+                    />
                 </div>
             </div>
 
             <CardZone
-                title="Hand"
+                title={`Hand (${player.handCount})`}
                 cards={player.hand}
                 onCardClick={
-                    isCurrentPlayer
+                    canPlayCards
                         ? onPlayCard
                         : undefined
                 }
@@ -601,7 +652,7 @@ function PlayerBoard({
             />
 
             <CardZone
-                title={`Deck (${player.deck.length})`}
+                title={`Deck (${player.deckCount})`}
                 cards={player.deck}
             />
 
@@ -618,9 +669,23 @@ function CardZone({
     onCardClick,
 }: {
     title: string;
-    cards: GameDto.CardDto[];
+    cards: GameDto.CardDto[] | null;
     onCardClick?: (cardInstanceId: string) => void;
 }) {
+    if (cards === null) {
+        return (
+            <section className="mb-6 last:mb-0">
+                <h3 className="mb-3 text-lg font-medium">
+                    {title}
+                </h3>
+
+                <p className="text-sm text-white/50 italic">
+                    Hidden
+                </p>
+            </section>
+        );
+    }
+
     return (
         <section className="mb-6 last:mb-0">
             <h3 className="mb-3 text-lg font-medium">

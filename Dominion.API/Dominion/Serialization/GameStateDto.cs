@@ -29,10 +29,13 @@ public class PlayerDto
     public required int Buys { get; init; }
     public required int Coins { get; init; }
 
-    public required List<CardDto> Hand { get; init; }
+    public List<CardDto>? Hand { get; init; }
     public required List<CardDto> InPlay { get; init; }
     public required List<CardDto> DiscardPile { get; init; }
-    public required List<CardDto> Deck { get; init; }
+    public List<CardDto>? Deck { get; init; }
+
+    public required int HandCount { get; init; }
+    public required int DeckCount { get; init; }
 }
 
 public class CardDto
