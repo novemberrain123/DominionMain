@@ -1,4 +1,5 @@
-﻿using Dominion.Dominion.Cards;
+﻿using Dominion.API.Dominion.Game;
+using Dominion.Dominion.Cards;
 using Dominion.Dominion.Players;
 
 namespace Dominion.Dominion.Game
@@ -108,6 +109,96 @@ namespace Dominion.Dominion.Game
             var card = Cards.Get(cardDef);
             ValidateCanBuy(state, player, card);
             ResolveBuy(state, player, card);
+            if (IsGameOver(state))
+            {
+                EndGame(state);
+            }
+        }
+
+        private void EndGame(GameState state)
+        {
+            state.IsGameOver = true;
+            state.Result = CalculateResults(state);
+
+            state.Events.Add(new GameEvent
+            {
+                SequenceNumber = state.Events.Count + 1,
+                Type = GameEventType.GameOver
+            });
+        }
+
+        private GameResult CalculateResults(GameState state)
+        {
+            var scoredPlayers = state.Players
+                .Select(player => new
+                {
+                    PlayerId = player.Id,
+                    VictoryPoints = CalculateVictoryPoints(player)
+                })
+                .OrderByDescending(player => player.VictoryPoints)
+                .ToList();
+
+            var results = new List<PlayerResult>();
+            var currentRank = 0;
+            int? previousScore = null;
+
+            for (var index = 0; index < scoredPlayers.Count; index++)
+            {
+                var player = scoredPlayers[index];
+
+                if (previousScore is null ||
+                    player.VictoryPoints != previousScore.Value)
+                {
+                    currentRank = index + 1;
+                }
+
+                results.Add(new PlayerResult
+                {
+                    PlayerId = player.PlayerId,
+                    VictoryPoints = player.VictoryPoints,
+                    Rank = currentRank
+                });
+
+                previousScore = player.VictoryPoints;
+            }
+
+            return new GameResult
+            {
+                Players = results
+            };
+        }
+
+        private int CalculateVictoryPoints(Player player)
+        {
+            var ownedCards = player.Deck
+                .Concat(player.Hand)
+                .Concat(player.DiscardPile)
+                .Concat(player.InPlay);
+
+            return ownedCards.Sum(card =>
+            {
+                return card.Definition.VictoryPoints;
+            });
+        }
+
+        private bool IsGameOver(GameState state)
+        {
+            // hardcode for now, may add a game setting to allow for different end conditions
+            if (!state.SupplyPiles.TryGetValue("province", out var provincePile))
+            {
+                throw new InvalidOperationException(
+                    "Province pile is missing.");
+            }
+
+            if (provincePile.Count == 0)
+            {
+                return true;
+            }
+
+            var emptyPileCount = state.SupplyPiles.Values
+                .Count(pile => pile.Count == 0);
+
+            return emptyPileCount == 3;
         }
 
         private void ValidateCanBuy(GameState state, Player player, CardDefinition card)

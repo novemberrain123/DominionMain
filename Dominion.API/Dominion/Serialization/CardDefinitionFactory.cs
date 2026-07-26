@@ -14,6 +14,8 @@ namespace Dominion.Dominion.Serialization
 
                 Cost = data.Cost,
 
+                VictoryPoints = data.VictoryPoints,
+
                 Types = data.Types
                     .Select(Enum.Parse<CardType>)
                     .ToHashSet(),

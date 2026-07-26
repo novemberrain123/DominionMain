@@ -1,4 +1,5 @@
-﻿using Dominion.API.Dominion.Serialization;
+﻿using Dominion.API.Dominion.Game;
+using Dominion.API.Dominion.Serialization;
 using Dominion.Dominion.Cards;
 using Dominion.Dominion.Game;
 using Dominion.Dominion.Players;
@@ -27,6 +28,10 @@ public static class GameStateDtoMapper
             CurrentPlayerIndex = state.CurrentPlayerIndex,
             CurrentPlayerId = currentPlayer.Id,
             IsGameOver = state.IsGameOver,
+
+            Result = state.Result is null
+                ? null
+                : ToGameResultDto(state.Result),
 
             Supply = state.SupplyPiles.Values
                 .Select(pile => ToSupplyPileDto(pile, cardRegistry))
@@ -99,4 +104,23 @@ public static class GameStateDtoMapper
             Remaining = pile.Count
         };
     }
+
+    private static GameResultDto ToGameResultDto(GameResult result)
+    {
+        return new GameResultDto
+        {
+            PlayerResults = result.Players
+                .Select(player => new PlayerResultDto
+                {
+                    PlayerId = player.PlayerId,
+                    VictoryPoints = player.VictoryPoints,
+                    Rank = player.Rank
+                })
+                .ToList()
+        };
+
+
+    }
+
+
 }

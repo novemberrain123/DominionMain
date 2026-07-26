@@ -1,50 +1,12 @@
 import { useEffect, useState } from "react";
+import GameResultModal from "./GameResultModal";
+import * as GameDto from "./api/game";
 
-type CardType = "action" | "treasure" | "victory" | "attack" | "reaction";
-
-type CardDto = {
-    instanceId: string;
-    definitionId: string;
-    name: string;
-    cost: number;
-    types: CardType[];
-};
-
-type SupplyPileDto = {
-    definitionId: string;
-    name: string;
-    cost: number;
-    types: CardType[];
-    remaining: number;
-};
-
-type PlayerDto = {
-    id: string;
-    name: string;
-    actions: number;
-    buys: number;
-    coins: number;
-    hand: CardDto[];
-    deck: CardDto[];
-    discardPile: CardDto[];
-    inPlay: CardDto[];
-};
-
-type GameStateDto = {
-    turnNumber: number;
-    phase: string;
-    currentPlayerIndex: number;
-    currentPlayerId: string;
-    isGameOver: boolean;
-    players: PlayerDto[];
-    supply: SupplyPileDto[];
-    trashCount: number;
-};
 
 const API_BASE_URL = "https://localhost:7268";
 
 export default function DominionBoard() {
-    const [game, setGame] = useState<GameStateDto | null>(null);
+    const [game, setGame] = useState<GameDto.GameStateDto | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -86,7 +48,7 @@ export default function DominionBoard() {
                 );
             }
 
-            const updatedGame: GameStateDto = await response.json();
+            const updatedGame: GameDto.GameStateDto = await response.json();
             setGame(updatedGame);
         } catch (error) {
             setError(
@@ -117,7 +79,7 @@ export default function DominionBoard() {
                 );
             }
 
-            const updatedGame: GameStateDto = await response.json();
+            const updatedGame: GameDto.GameStateDto = await response.json();
             setGame(updatedGame);
         } catch (error) {
             setError(
@@ -148,7 +110,7 @@ export default function DominionBoard() {
                 );
             }
 
-            const updatedGame: GameStateDto = await response.json();
+            const updatedGame: GameDto.GameStateDto = await response.json();
             setGame(updatedGame);
         } catch (error) {
             setError(
@@ -185,7 +147,7 @@ export default function DominionBoard() {
                 );
             }
 
-            const updatedGame: GameStateDto = await response.json();
+            const updatedGame: GameDto.GameStateDto = await response.json();
             setGame(updatedGame);
         } catch (error) {
             setError(
@@ -207,7 +169,7 @@ export default function DominionBoard() {
                     );
                 }
 
-                const data: GameStateDto = await response.json();
+                const data: GameDto.GameStateDto = await response.json();
                 setGame(data);
             } catch (error) {
                 setError(
@@ -316,6 +278,10 @@ export default function DominionBoard() {
                     onClose={() => setError(null)}
                 />
             )}
+
+            {game.isGameOver && game.result && (
+                <GameResultModal result={game.result} players={game.players} />
+            )}
         </main>
     );
 }
@@ -365,7 +331,7 @@ function PlayerBoard({
     isCurrentPlayer,
     onPlayCard,
 }: {
-    player: PlayerDto;
+    player: GameDto.PlayerDto;
     isCurrentPlayer: boolean;
     onPlayCard: (cardInstanceId: string) => void;
 }) {
@@ -431,7 +397,7 @@ function CardZone({
     onCardClick,
 }: {
     title: string;
-    cards: CardDto[];
+    cards: GameDto.CardDto[];
     onCardClick?: (cardInstanceId: string) => void;
 }) {
     return (
@@ -489,7 +455,7 @@ function Card({
     card,
     onClick,
 }: {
-    card: CardDto;
+    card: GameDto.CardDto;
     onClick?: () => void;
 }) {
     const className = [
@@ -535,7 +501,7 @@ function SupplyCard({
     pile,
     onClick,
 }: {
-    pile: SupplyPileDto;
+    pile: GameDto.SupplyPileDto;
     onClick?: () => void;
 }) {
     return (

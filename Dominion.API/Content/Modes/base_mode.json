@@ -16,7 +16,7 @@
 
     "estate": 8,
     "duchy": 8,
-    "province": 8,
+    "province": 1,
 
     "village": 10,
     "smithy": 10,

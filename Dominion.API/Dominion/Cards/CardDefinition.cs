@@ -8,6 +8,7 @@ namespace Dominion.Dominion.Cards
         public required string Id { get; init; }
         public required string DisplayName { get; init; }
         public required int Cost { get; init; }
+        public int VictoryPoints { get; init; }
         public HashSet<CardType> Types { get; init; }
 
         public List<EffectData> Effects { get; init; }

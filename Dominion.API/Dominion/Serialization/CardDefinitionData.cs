@@ -7,6 +7,8 @@
 
         public int Cost { get; set; }
 
+        public int VictoryPoints { get; set; }
+
         public List<string> Types { get; set; }
 
         public List<EffectData> Effects { get; set; }

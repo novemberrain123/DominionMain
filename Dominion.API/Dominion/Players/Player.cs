@@ -56,5 +56,6 @@ namespace Dominion.Dominion.Players
             //shuffle
             Deck = Deck.OrderBy(_ => Guid.NewGuid()).ToList();
         }
+
     }
 }

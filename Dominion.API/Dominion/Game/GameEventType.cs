@@ -10,5 +10,6 @@
         CardGained,
         CardTrashed,
         PhaseChanged,
+        GameOver,
     }
 }

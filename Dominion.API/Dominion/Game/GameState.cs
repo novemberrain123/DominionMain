@@ -1,10 +1,12 @@
-﻿using Dominion.Dominion.Cards;
+﻿using Dominion.API.Dominion.Game;
+using Dominion.Dominion.Cards;
 using Dominion.Dominion.Players;
 
 namespace Dominion.Dominion.Game
 {
     public class GameState
     {
+        public Guid GameId { get; }
         public List<Player> Players { get; private set; } = new();
         public int CurrentPlayerIndex { get; set; }
 
@@ -17,7 +19,19 @@ namespace Dominion.Dominion.Game
 
         public bool IsGameOver { get; set; }
 
+        public GameResult? Result { get; set; }
+
         public List<GameEvent> Events { get; private set; } = new();
+
+        public GameState()
+        {
+            GameId = Guid.NewGuid();
+        }
+
+        public GameState(Guid gameId)
+        {
+            GameId = gameId;
+        }
 
         public void Initialize(List<Player> players, Dictionary<string, SupplyPile> supply)
         {

@@ -1,9 +1,10 @@
-﻿using Dominion.Dominion.Cards;
+﻿using Dominion.API.Dominion.Game;
+using Dominion.Dominion.Cards;
 using Dominion.Dominion.Game;
 
 namespace Dominion.API.Dominion.Serialization;
 
-public sealed class GameStateDto
+public class GameStateDto
 {
     public required int TurnNumber { get; init; }
     public required GamePhase Phase { get; init; }
@@ -15,9 +16,10 @@ public sealed class GameStateDto
     public required List<SupplyPileDto> Supply { get; init; }
 
     public required int TrashCount { get; init; }
+    public GameResultDto? Result { get; init; }
 }
 
-public sealed class PlayerDto
+public class PlayerDto
 {
     public required Guid Id { get; init; }
     public required string Name { get; init; }
@@ -32,7 +34,7 @@ public sealed class PlayerDto
     public required List<CardDto> Deck { get; init; }
 }
 
-public sealed class CardDto
+public class CardDto
 {
     public required Guid InstanceId { get; init; }
     public required string DefinitionId { get; init; }
@@ -41,11 +43,23 @@ public sealed class CardDto
     public required List<CardType> Types { get; init; }
 }
 
-public sealed class SupplyPileDto
+public class SupplyPileDto
 {
     public required string DefinitionId { get; init; }
     public required string Name { get; init; }
     public required int Cost { get; init; }
     public required List<CardType> Types { get; init; }
     public required int Remaining { get; init; }
+}
+
+public class GameResultDto
+{
+    public required List<PlayerResultDto> PlayerResults { get; init; }
+}
+
+public class PlayerResultDto
+{
+    public required Guid PlayerId { get; init; }
+    public required int VictoryPoints { get; init; }
+    public required int Rank { get; init; }
 }

@@ -4,6 +4,7 @@
     {
         Action,
         Buy,
-        Cleanup
+        Cleanup,
+        GameOver
     }
 }

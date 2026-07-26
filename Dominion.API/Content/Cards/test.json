@@ -7,7 +7,7 @@
         "effects": [
             {
                 "type": "gainCoins",
-                "amount": 1
+                "amount": 8
             }
         ]
     },
@@ -39,21 +39,24 @@
     {
         "id": "estate",
         "displayName": "Estate",
-        "cost": 2,
+      "cost": 2,
+      "victoryPoints": 1,
         "types": [ "Victory" ],
         "effects": []
     },
     {
         "id": "duchy",
         "displayName": "Duchy",
-        "cost": 5,
+      "cost": 5,
+      "victoryPoints": 3,
         "types": [ "Victory" ],
         "effects": []
     },
     {
         "id": "province",
         "displayName": "Province",
-        "cost": 8,
+      "cost": 8,
+      "victoryPoints": 6,
         "types": [ "Victory" ],
         "effects": []
     },
