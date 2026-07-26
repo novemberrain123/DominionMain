@@ -23,6 +23,7 @@ public static class GameStateDtoMapper
 
         return new GameStateDto
         {
+            GameId = state.GameId,
             TurnNumber = state.TurnNumber,
             Phase = state.Phase,
             CurrentPlayerIndex = state.CurrentPlayerIndex,

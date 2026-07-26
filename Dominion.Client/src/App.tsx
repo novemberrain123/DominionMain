@@ -43,29 +43,32 @@ export default function DominionBoard() {
         }
     }
 
+    async function createGame(): Promise<GameDto.GameStateDto> {
+        const response = await fetch(
+            `${API_BASE_URL}/debug/games`,
+            {
+                method: "POST",
+            },
+        );
+
+        if (!response.ok) {
+            const message = await response.text();
+
+            throw new Error(
+                message ||
+                `Failed to create game: ${response.status}`,
+            );
+        }
+
+        return await response.json() as GameDto.GameStateDto;
+    }
+
     async function bootstrapGame() {
         try {
             setError(null);
+            setIsLoading(true);
 
-            const response = await fetch(
-                `${API_BASE_URL}/debug/bootstrap`,
-                {
-                    method: "POST",
-                },
-            );
-
-            if (!response.ok) {
-                const message = await response.text();
-
-                throw new Error(
-                    message ||
-                    `Failed to create game: ${response.status}`,
-                );
-            }
-
-            const newGame: GameDto.GameStateDto =
-                await response.json();
-
+            const newGame = await createGame();
             setGame(newGame);
         } catch (error) {
             setError(
@@ -73,8 +76,11 @@ export default function DominionBoard() {
                     ? error.message
                     : "Failed to create game.",
             );
+        } finally {
+            setIsLoading(false);
         }
     }
+
 
     async function nextPhase() {
         if (!game) {
@@ -93,7 +99,7 @@ export default function DominionBoard() {
             setError(null);
 
             const response = await fetch(
-                `${API_BASE_URL}/debug/buy-card`,
+                `${API_BASE_URL}/debug/games/${game?.gameId}/buy-card`,
                 {
                     method: "POST",
                     headers: {
@@ -130,7 +136,7 @@ export default function DominionBoard() {
             setError(null);
 
             const response = await fetch(
-                `${API_BASE_URL}/debug/end-turn`,
+                `${API_BASE_URL}/debug/games/${game?.gameId}/end-turn`,
                 {
                     method: "POST",
                 },
@@ -161,7 +167,7 @@ export default function DominionBoard() {
             setError(null);
 
             const response = await fetch(
-                `${API_BASE_URL}/debug/end-action-phase`,
+                `${API_BASE_URL}/debug/games/${game?.gameId}/end-action-phase`,
                 {
                     method: "POST",
                 },
@@ -193,7 +199,7 @@ export default function DominionBoard() {
             setError(null);
 
             const response = await fetch(
-                `${API_BASE_URL}/debug/play-card`,
+                `${API_BASE_URL}/debug/games/${game?.gameId}/play-card`,
                 {
                     method: "POST",
                     headers: {
@@ -225,30 +231,35 @@ export default function DominionBoard() {
     }
 
     useEffect(() => {
-        async function loadGame() {
-            try {
-                const response = await fetch(`${API_BASE_URL}/debug/game`);
+        let cancelled = false;
 
-                if (!response.ok) {
-                    throw new Error(
-                        `Failed to load game: ${response.status}`,
+        async function initializeGame() {
+            try {
+                const newGame = await createGame();
+
+                if (!cancelled) {
+                    setGame(newGame);
+                }
+            } catch (error) {
+                if (!cancelled) {
+                    setError(
+                        error instanceof Error
+                            ? error.message
+                            : "Failed to create game.",
                     );
                 }
-
-                const data: GameDto.GameStateDto = await response.json();
-                setGame(data);
-            } catch (error) {
-                setError(
-                    error instanceof Error
-                        ? error.message
-                        : "Failed to load game.",
-                );
             } finally {
-                setIsLoading(false);
+                if (!cancelled) {
+                    setIsLoading(false);
+                }
             }
         }
 
-        void loadGame();
+        void initializeGame();
+
+        return () => {
+            cancelled = true;
+        };
     }, []);
 
     if (isLoading) {

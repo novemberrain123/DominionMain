@@ -6,6 +6,7 @@ namespace Dominion.API.Dominion.Serialization;
 
 public class GameStateDto
 {
+    public required Guid GameId { get; init; }
     public required int TurnNumber { get; init; }
     public required GamePhase Phase { get; init; }
     public required int CurrentPlayerIndex { get; init; }

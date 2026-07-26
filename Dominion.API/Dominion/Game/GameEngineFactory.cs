@@ -44,7 +44,7 @@ namespace Dominion.Dominion.Game
 
             _gameSetupService.InitializePlayers(engine, config);
 
-            _engineProvider.Engine = engine; // inject the engine into the provider for debug tools
+            _engineProvider.Add(engine); // inject the engine into the provider for debug tools
 
             return engine;
         }

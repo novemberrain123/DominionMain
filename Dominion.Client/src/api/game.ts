@@ -30,6 +30,7 @@ export interface PlayerDto  {
 };
 
 export interface GameStateDto  {
+    gameId: string;
     turnNumber: number;
     phase: string;
     currentPlayerIndex: number;
