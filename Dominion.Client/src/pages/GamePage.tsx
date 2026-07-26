@@ -54,6 +54,7 @@ export default function GamePage() {
 
     useEffect(() => {
         if (!gameId) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setError("No game ID was provided.");
             setIsLoading(false);
             return;

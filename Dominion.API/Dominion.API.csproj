@@ -17,6 +17,7 @@
     <Folder Include="Cards\" />
     <Folder Include="Content\Modes\" />
     <Folder Include="Game\" />
+    <Folder Include="docs\" />
     <Folder Include="Players\" />
   </ItemGroup>
 
