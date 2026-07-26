@@ -3,9 +3,17 @@ import { useParams, useNavigate } from "react-router-dom";
 import GameResultModal from "../components/GameResultModal";
 import * as GameDto from "../api/game";
 import Lobby from "../components/Lobby";
+import {
+    HubConnectionBuilder,
+    HubConnectionState,
+    LogLevel,
+} from "@microsoft/signalr";
 
 
 const API_BASE_URL = "https://localhost:7268/debug";
+const SERVER_URL =
+    "https://localhost:7268";
+
 
 export default function GamePage() {
     const navigate = useNavigate();
@@ -53,6 +61,83 @@ export default function GamePage() {
 
         void loadGame(gameId);
     }, [gameId]);
+
+    useEffect(() => {
+        if (!gameId) {
+            return;
+        }
+
+        const connection = new HubConnectionBuilder()
+            .withUrl(`${SERVER_URL}/hubs/game`)
+            .withAutomaticReconnect()
+            .configureLogging(LogLevel.Information)
+            .build();
+
+        connection.on("GameUpdated", () => {
+            void refreshGame();
+        });
+
+        connection.onreconnected(async () => {
+            try {
+                await connection.invoke(
+                    "JoinGame",
+                    gameId,
+                );
+
+                await refreshGame();
+            } catch (error) {
+                console.error(
+                    "Failed to rejoin game hub:",
+                    error,
+                );
+            }
+        });
+
+        connection.onreconnecting(error => {
+            console.warn(
+                "SignalR reconnecting:",
+                error,
+            );
+        });
+
+        connection.onclose(error => {
+            if (error) {
+                console.error(
+                    "SignalR connection closed:",
+                    error,
+                );
+            }
+        });
+
+        async function startConnection() {
+            try {
+                await connection.start();
+
+                await connection.invoke(
+                    "JoinGame",
+                    gameId,
+                );
+            } catch (error) {
+                console.error(
+                    "SignalR connection failed:",
+                    error,
+                );
+            }
+        }
+
+        void startConnection();
+
+        return () => {
+            connection.off("GameUpdated");
+
+            if (
+                connection.state !==
+                HubConnectionState.Disconnected
+            ) {
+                void connection.stop();
+            }
+        };
+    }, [gameId, refreshGame]);
 
     async function loadGame(id: string) {
         try {

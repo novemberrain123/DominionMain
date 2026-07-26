@@ -4,6 +4,8 @@ using Dominion.Dominion.Game;
 using Dominion.Dominion.Game.Debug;
 using Dominion.Dtos;
 using Microsoft.AspNetCore.Mvc;
+using Dominion.Hubs;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Dominion.Controllers;
 
@@ -15,13 +17,17 @@ public class DebugController : ControllerBase
 
     private readonly GameEngineFactory _factory;
     private readonly GameEngineProvider _provider;
+    private readonly IHubContext<GameHub> _gameHub;
 
     public DebugController(
         GameEngineFactory factory,
-        GameEngineProvider provider)
+        GameEngineProvider provider,
+        IHubContext<GameHub> gameHub)
     {
         _factory = factory;
         _provider = provider;
+        _gameHub = gameHub;
+
     }
 
     [HttpPost]
@@ -57,7 +63,7 @@ public class DebugController : ControllerBase
     }
 
     [HttpPost("{gameId:guid}/join")]
-    public ActionResult JoinGame(
+    public async Task<ActionResult> JoinGame(
         Guid gameId,
         [FromBody] JoinGameRequest request)
     {
@@ -73,6 +79,8 @@ public class DebugController : ControllerBase
             var player = engine.AddPlayer(request.PlayerName);
             var token = engine.CreatePlayerSession(player.Id);
 
+            await BroadcastGameUpdated(gameId);
+
             return Ok(new
             {
                 GameId = gameId,
@@ -87,7 +95,7 @@ public class DebugController : ControllerBase
     }
 
     [HttpPost("{gameId:guid}/start")]
-    public ActionResult<GameStateDto> StartGame(Guid gameId)
+    public Task<ActionResult<GameStateDto>> StartGame(Guid gameId)
     {
         return ExecutePlayerAction(
             gameId,
@@ -96,7 +104,7 @@ public class DebugController : ControllerBase
     }
 
     [HttpPost("{gameId:guid}/play-card")]
-    public ActionResult<GameStateDto> PlayCard(
+    public Task<ActionResult<GameStateDto>> PlayCard(
         Guid gameId,
         [FromBody] PlayCardRequest request)
     {
@@ -109,7 +117,7 @@ public class DebugController : ControllerBase
     }
 
     [HttpPost("{gameId:guid}/end-action-phase")]
-    public ActionResult<GameStateDto> EndActionPhase(
+    public Task<ActionResult<GameStateDto>> EndActionPhase(
         Guid gameId)
     {
         return ExecutePlayerAction(
@@ -119,7 +127,7 @@ public class DebugController : ControllerBase
     }
 
     [HttpPost("{gameId:guid}/buy-card")]
-    public ActionResult<GameStateDto> BuyCard(
+    public Task<ActionResult<GameStateDto>> BuyCard(
         Guid gameId,
         [FromBody] BuyCardRequest request)
     {
@@ -132,7 +140,7 @@ public class DebugController : ControllerBase
     }
 
     [HttpPost("{gameId:guid}/end-turn")]
-    public ActionResult<GameStateDto> EndTurn(Guid gameId)
+    public Task<ActionResult<GameStateDto>> EndTurn(Guid gameId)
     {
         return ExecutePlayerAction(
             gameId,
@@ -141,7 +149,7 @@ public class DebugController : ControllerBase
     }
 
     [HttpPost("{gameId:guid}/play-all-treasures")]
-    public ActionResult<GameStateDto> PlayAllTreasures(
+    public Task<ActionResult<GameStateDto>> PlayAllTreasures(
         Guid gameId)
     {
         return ExecutePlayerAction(
@@ -150,7 +158,7 @@ public class DebugController : ControllerBase
                 engine.PlayAllTreasures(playerId));
     }
 
-    private ActionResult<GameStateDto> ExecuteGameAction(
+    private async Task<ActionResult<GameStateDto>> ExecuteGameAction(
     Guid gameId,
     Action<GameEngine> action)
     {
@@ -165,6 +173,8 @@ public class DebugController : ControllerBase
         {
             action(engine);
 
+            await BroadcastGameUpdated(gameId);
+
             return Ok(GameStateDtoMapper.ToDto(
                 engine.State,
                 engine.Cards));
@@ -175,7 +185,7 @@ public class DebugController : ControllerBase
         }
     }
 
-    private ActionResult<GameStateDto> ExecutePlayerAction(
+    private async Task<ActionResult<GameStateDto>> ExecutePlayerAction(
         Guid gameId,
         Action<GameEngine, Guid> action)
     {
@@ -192,6 +202,8 @@ public class DebugController : ControllerBase
 
             action(engine, playerId);
 
+            await BroadcastGameUpdated(gameId);
+
             return Ok(ToDto(engine, playerId));
         }
         catch (UnauthorizedAccessException exception)
@@ -202,6 +214,13 @@ public class DebugController : ControllerBase
         {
             return BadRequest(exception.Message);
         }
+    }
+
+    private Task BroadcastGameUpdated(Guid gameId)
+    {
+        return _gameHub.Clients
+            .Group(GameHub.GetGroupName(gameId))
+            .SendAsync("GameUpdated");
     }
 
     private Guid ResolvePlayerId(GameEngine engine)

@@ -2,6 +2,7 @@
 using Dominion.Dominion.Game;
 using Dominion.Dominion.Game.Debug;
 using Dominion.Dominion.Serialization;
+using Dominion.Hubs;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -51,14 +52,17 @@ builder.Services.AddTransient<GameEngineFactory>();
 //test
 builder.Services.AddSingleton<GameEngineProvider>();
 
+builder.Services.AddSignalR();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
         policy
+            .WithOrigins("http://localhost:1044") 
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .AllowAnyOrigin();
+            .AllowCredentials();
     });
 });
 
@@ -78,5 +82,6 @@ app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<GameHub>("/hubs/game");
 
 app.Run();
