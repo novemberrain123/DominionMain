@@ -18,6 +18,18 @@ namespace Dominion.Dominion.Game
             _effectResolver = effectResolver;
         }
 
+        public void PlayAllTreasures(GameState state, Player player)
+        {
+            var treasures = player.Hand
+                .Where(IsTreasure)
+                .ToList();
+
+            foreach (var treasure in treasures)
+            {
+                PlayCard(state, player, treasure);
+            }
+        }
+
         //action phase
         public void PlayCard(GameState state, Player player, Card card)
         {

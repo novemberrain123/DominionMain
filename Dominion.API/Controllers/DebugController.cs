@@ -259,5 +259,32 @@ namespace Dominion.Controllers
                 engine.Cards));
         }
 
+        [HttpPost("play-all-treasures")]
+        public ActionResult<GameStateDto> PlayAllTreasures()
+        {
+            var engine = _provider.Engine;
+
+            if (engine is null)
+            {
+                return NotFound("No game has been initialized.");
+            }
+
+            var state = engine.State;
+            var currentPlayer = state.Players[state.CurrentPlayerIndex];
+
+            try
+            {
+                engine.PlayAllTreasures(state, currentPlayer);
+            }
+            catch (InvalidOperationException exception)
+            {
+                return BadRequest(exception.Message);
+            }
+
+            return Ok(GameStateDtoMapper.ToDto(
+                state,
+                engine.Cards));
+        }
+
     }
 }

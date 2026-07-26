@@ -10,6 +10,39 @@ export default function DominionBoard() {
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
+    async function playAllTreasures() {
+        try {
+            setError(null);
+
+            const response = await fetch(
+                `${API_BASE_URL}/debug/play-all-treasures`,
+                {
+                    method: "POST",
+                },
+            );
+
+            if (!response.ok) {
+                const message = await response.text();
+
+                throw new Error(
+                    message ||
+                    `Failed to play treasures: ${response.status}`,
+                );
+            }
+
+            const updatedGame: GameDto.GameStateDto =
+                await response.json();
+
+            setGame(updatedGame);
+        } catch (error) {
+            setError(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to play treasures.",
+            );
+        }
+    }
+
     async function bootstrapGame() {
         try {
             setError(null);
@@ -249,15 +282,29 @@ export default function DominionBoard() {
                         </p>
                     </div>
 
-                    <button
-                        type="button"
-                        onClick={nextPhase}
-                        className="rounded-xl bg-yellow-300 px-4 py-2 font-semibold text-black transition hover:bg-yellow-200"
-                    >
-                        {game.phase === "action"
-                            ? "End Action Phase"
-                            : "End Turn"}
-                    </button>
+                    <div className="flex flex-wrap gap-3">
+                        {game.phase === "buy" && (
+                            <button
+                                type="button"
+                                onClick={() => void playAllTreasures()}
+                                disabled={game.isGameOver}
+                                className="rounded-xl bg-amber-600 px-4 py-2 font-semibold text-white transition hover:bg-amber-500 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                Play All Treasures
+                            </button>
+                        )}
+
+                        <button
+                            type="button"
+                            onClick={() => void nextPhase()}
+                            disabled={game.isGameOver}
+                            className="rounded-xl bg-yellow-300 px-4 py-2 font-semibold text-black transition hover:bg-yellow-200 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            {game.phase === "action"
+                                ? "End Action Phase"
+                                : "End Turn"}
+                        </button>
+                    </div>
 
                     <div className="flex gap-3">
                         <Stat
