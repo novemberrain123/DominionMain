@@ -1,6 +1,6 @@
-﻿using Dominion.Dominion.Cards;
+﻿using Dominion.API.Dominion.Cards;
 
-namespace Dominion.Dominion.Serialization
+namespace Dominion.API.Dominion.Serialization
 {
     public class CardDefinitionFactory
     {

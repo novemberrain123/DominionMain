@@ -2,7 +2,7 @@
 import { useNavigate } from "react-router-dom";
 import type { GameStateDto } from "../api/game";
 
-const API_BASE_URL = "https://localhost:7268/debug";
+const API_BASE_URL = "https://localhost:7268";
 
 export default function HomePage() {
     const navigate = useNavigate();

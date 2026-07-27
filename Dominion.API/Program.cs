@@ -1,8 +1,7 @@
-﻿using Dominion.Dominion.Cards;
-using Dominion.Dominion.Game;
-using Dominion.Dominion.Game.Debug;
-using Dominion.Dominion.Serialization;
-using Dominion.Hubs;
+﻿using Dominion.API.Dominion.Cards;
+using Dominion.API.Dominion.Game;
+using Dominion.API.Dominion.Serialization;
+using Dominion.API.Hubs;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 

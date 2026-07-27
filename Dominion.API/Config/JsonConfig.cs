@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 
-namespace Dominion.Config
+namespace Dominion.API.Config
 {
     public static class JsonConfig
     {

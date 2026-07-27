@@ -1,8 +1,7 @@
-﻿using Dominion.API.Dominion.Game;
-using Dominion.Dominion.Cards;
-using Dominion.Dominion.Players;
+﻿using Dominion.API.Dominion.Cards;
+using Dominion.API.Dominion.Players;
 
-namespace Dominion.Dominion.Game
+namespace Dominion.API.Dominion.Game
 {
     public class GameState
     {

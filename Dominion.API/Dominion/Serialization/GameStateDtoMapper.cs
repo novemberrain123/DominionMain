@@ -1,11 +1,9 @@
-﻿using Dominion.API.Dominion.Game;
-using Dominion.API.Dominion.Serialization;
-using Dominion.Dominion.Cards;
-using Dominion.Dominion.Game;
-using Dominion.Dominion.Players;
-using Dominion.Dominion.Serialization.EffectDatas;
+﻿using Dominion.API.Dominion.Cards;
+using Dominion.API.Dominion.Game;
+using Dominion.API.Dominion.Players;
+using Dominion.API.Dominion.Serialization.EffectDatas;
 
-namespace Dominion.Dtos;
+namespace Dominion.API.Dominion.Serialization;
 
 public static class GameStateDtoMapper
 {
@@ -99,7 +97,8 @@ public static class GameStateDtoMapper
             DefinitionId = card.Definition.Id,
             Name = card.Definition.DisplayName,
             Cost = card.Definition.Cost,
-            Types = card.Definition.Types.ToList()
+            Types = card.Definition.Types.ToList(),
+            Effects = card.Definition.Effects.Select(e => e.ToDisplayText()).ToList()
         };
     }
 
@@ -115,9 +114,8 @@ public static class GameStateDtoMapper
             DefinitionId = definition.Id,
             Name = definition.DisplayName,
             Cost = definition.Cost,
-
             Types = definition.Types.ToList(),
-
+            Effects = definition.Effects.Select(e => e.ToDisplayText()).ToList(),
             Remaining = pile.Count
         };
     }

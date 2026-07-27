@@ -8,6 +8,7 @@ export interface CardDto  {
     name: string;
     cost: number;
     types: CardType[];
+    effects: string[];
 };
 
 export interface SupplyPileDto  {
@@ -16,6 +17,7 @@ export interface SupplyPileDto  {
     cost: number;
     types: CardType[];
     remaining: number;
+    effects: string[];
 };
 
 export interface PlayerDto  {

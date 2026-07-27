@@ -1,8 +1,8 @@
-﻿using Dominion.Dominion.Players;
-using Dominion.Dominion.Serialization.EffectDatas;
-using Dominion.Dominion.Serialization;
+﻿using Dominion.API.Dominion.Serialization;
+using Dominion.API.Dominion.Serialization.EffectDatas;
+using Dominion.API.Dominion.Players;
 
-namespace Dominion.Dominion.Game
+namespace Dominion.API.Dominion.Game
 {
     public class EffectResolver
     {

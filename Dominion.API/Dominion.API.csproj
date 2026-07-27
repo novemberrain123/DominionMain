@@ -16,6 +16,7 @@
   <ItemGroup>
     <Folder Include="Cards\" />
     <Folder Include="Content\Modes\" />
+    <Folder Include="Dominion\Game\Debug\" />
     <Folder Include="Game\" />
     <Folder Include="docs\" />
     <Folder Include="Players\" />

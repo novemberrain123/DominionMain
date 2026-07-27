@@ -1,6 +1,6 @@
-﻿using Dominion.Dominion.Cards;
+﻿using Dominion.API.Dominion.Cards;
 
-namespace Dominion.Dominion.Game
+namespace Dominion.API.Dominion.Game
 {
     public class SupplyPile
     {

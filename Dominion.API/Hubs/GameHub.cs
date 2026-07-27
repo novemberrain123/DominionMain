@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 
-namespace Dominion.Hubs;
+namespace Dominion.API.Hubs;
 
 public sealed class GameHub : Hub
 {

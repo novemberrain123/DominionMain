@@ -1,7 +1,7 @@
-﻿using Dominion.Dominion.Serialization;
+﻿using Dominion.API.Dominion.Serialization;
 using Microsoft.VisualBasic;
 
-namespace Dominion.Dominion.Cards
+namespace Dominion.API.Dominion.Cards
 {
     public class CardDefinition
     {

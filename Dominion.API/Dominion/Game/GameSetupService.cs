@@ -1,7 +1,7 @@
-﻿using Dominion.Dominion.Cards;
-using Dominion.Dominion.Players;
+﻿using Dominion.API.Dominion.Players;
+using Dominion.API.Dominion.Cards;
 
-namespace Dominion.Dominion.Game
+namespace Dominion.API.Dominion.Game
 {
     public class GameSetupService
     {

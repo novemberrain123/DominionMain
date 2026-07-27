@@ -1,8 +1,8 @@
 ﻿using System.Numerics;
-using Dominion.Dominion.Game;
-using Dominion.Dominion.Players;
+using Dominion.API.Dominion.Game;
+using Dominion.API.Dominion.Players;
 
-namespace Dominion.Dominion.Cards
+namespace Dominion.API.Dominion.Cards
 {
     public interface ICardEffect
     {

@@ -1,8 +1,8 @@
-﻿using Dominion.Dominion.Game;
-using Dominion.Dominion.Serialization;
+﻿using Dominion.API.Dominion.Serialization;
+using Dominion.API.Dominion.Game;
 using System.Text.Json;
 
-namespace Dominion.Dominion.Cards
+namespace Dominion.API.Dominion.Cards
 {
     public class CardRegistry
     {
@@ -30,7 +30,7 @@ namespace Dominion.Dominion.Cards
                 DisplayName = card.DisplayName,
                 Cost = card.Cost,
                 Types = card.Types.Select(t => t.ToString()).ToList(),
-                Effects = card.Effects
+                Effects = card.Effects.Select(e => e.ToDisplayText()).ToList()
             };
         }
 

@@ -10,9 +10,8 @@ import {
 } from "@microsoft/signalr";
 
 
-const API_BASE_URL = "https://localhost:7268/debug";
-const SERVER_URL =
-    "https://localhost:7268";
+const API_BASE_URL = "https://localhost:7268";
+const SERVER_URL = "https://localhost:7268";
 
 
 export default function GamePage() {
@@ -823,6 +822,7 @@ function Stat({
         </div>
     );
 }
+
 function Card({
     card,
     onClick,
@@ -831,7 +831,7 @@ function Card({
     onClick?: () => void;
 }) {
     const className = [
-        "flex h-40 w-28 flex-col justify-between rounded-2xl",
+        "flex h-40 w-28 flex-col rounded-2xl",
         "border border-black/20 bg-yellow-100 p-3 text-black shadow-lg",
         onClick
             ? "cursor-pointer transition hover:-translate-y-1 hover:shadow-xl"
@@ -844,11 +844,19 @@ function Card({
                 {card.types.join(" · ")}
             </div>
 
-            <div className="text-center text-lg font-bold">
+            <div className="mt-1 text-center text-lg font-bold">
                 {card.name}
             </div>
 
-            <div className="flex items-end justify-between text-sm font-medium text-black/60">
+            <div className="my-auto flex flex-col gap-1 text-center text-xs">
+                {card.effects.map((text, index) => (
+                    <div key={`${text}-${index}`}>
+                        {text}
+                    </div>
+                ))}
+            </div>
+
+            <div className="flex items-end justify-between text-xs font-medium text-black/60">
                 <span>{card.definitionId}</span>
                 <span>Cost {card.cost}</span>
             </div>
@@ -885,6 +893,7 @@ function SupplyCard({
                     name: pile.name,
                     cost: pile.cost,
                     types: pile.types,
+                    effects: pile.effects,
                 }}
                 onClick={onClick}
             />

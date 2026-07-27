@@ -1,9 +1,9 @@
-﻿using Dominion.Config;
-using Dominion.Dominion.Cards;
-using Dominion.Dominion.Serialization;
+﻿using Dominion.API.Config;
+using Dominion.API.Dominion.Cards;
+using Dominion.API.Dominion.Serialization;
 using System.Text.Json;
 
-namespace Dominion.Dominion.Game
+namespace Dominion.API.Dominion.Game
 {
     public class ContentLoader
     {

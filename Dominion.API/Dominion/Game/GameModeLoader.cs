@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
-using Dominion.Config;
+using Dominion.API.Config;
 
-namespace Dominion.Dominion.Game
+namespace Dominion.API.Dominion.Game
 {
     public class GameModeLoader
     {

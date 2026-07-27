@@ -1,4 +1,4 @@
-﻿namespace Dominion.Dominion.Serialization
+﻿namespace Dominion.API.Dominion.Serialization
 {
     public class CardDefinitionDto
     {
@@ -6,6 +6,6 @@
         public string DisplayName { get; set; }
         public int Cost { get; set; }
         public List<string> Types { get; set; }
-        public List<EffectData> Effects { get; set; }
+        public List<string> Effects { get; set; }
     }
 }

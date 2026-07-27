@@ -1,6 +1,6 @@
-﻿using Dominion.Dominion.Cards;
+﻿using Dominion.API.Dominion.Cards;
 
-namespace Dominion.Dominion.Players
+namespace Dominion.API.Dominion.Players
 {
     public class Player
     {

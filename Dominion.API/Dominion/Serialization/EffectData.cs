@@ -1,8 +1,8 @@
-﻿using Dominion.Dominion.Serialization.EffectDatas;
+﻿using Dominion.API.Dominion.Serialization.EffectDatas;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Dominion.Dominion.Serialization
+namespace Dominion.API.Dominion.Serialization
 {
     [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
     [JsonDerivedType(typeof(DrawCardsEffectData), "drawCards")]
@@ -11,5 +11,6 @@ namespace Dominion.Dominion.Serialization
     [JsonDerivedType(typeof(GainBuysEffectData), "gainBuys")]
     public abstract class EffectData
     {
+        public abstract string ToDisplayText();
     }
 }

@@ -1,6 +1,5 @@
-﻿using Dominion.API.Dominion.Game;
-using Dominion.Dominion.Cards;
-using Dominion.Dominion.Game;
+﻿using Dominion.API.Dominion.Cards;
+using Dominion.API.Dominion.Game;
 
 namespace Dominion.API.Dominion.Serialization;
 
@@ -45,6 +44,7 @@ public class CardDto
     public required string Name { get; init; }
     public required int Cost { get; init; }
     public required List<CardType> Types { get; init; }
+    public required List<string> Effects { get; init; }
 }
 
 public class SupplyPileDto
@@ -54,6 +54,7 @@ public class SupplyPileDto
     public required int Cost { get; init; }
     public required List<CardType> Types { get; init; }
     public required int Remaining { get; init; }
+    public required List<string> Effects { get; init; }
 }
 
 public class GameResultDto

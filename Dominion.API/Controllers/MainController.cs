@@ -1,17 +1,15 @@
 ﻿using Dominion.API.Dominion.Serialization;
 using Dominion.API.Dominion.Serialization.RequestDto;
-using Dominion.Dominion.Game;
-using Dominion.Dominion.Game.Debug;
-using Dominion.Dtos;
 using Microsoft.AspNetCore.Mvc;
-using Dominion.Hubs;
 using Microsoft.AspNetCore.SignalR;
+using Dominion.API.Dominion.Game;
+using Dominion.API.Hubs;
 
-namespace Dominion.Controllers;
+namespace Dominion.API.Controllers;
 
 [ApiController]
-[Route("debug/games")]
-public class DebugController : ControllerBase
+[Route("games")]
+public class MainController : ControllerBase
 {
     private const string PlayerTokenHeader = "X-Player-Token";
 
@@ -19,7 +17,7 @@ public class DebugController : ControllerBase
     private readonly GameEngineProvider _provider;
     private readonly IHubContext<GameHub> _gameHub;
 
-    public DebugController(
+    public MainController(
         GameEngineFactory factory,
         GameEngineProvider provider,
         IHubContext<GameHub> gameHub)

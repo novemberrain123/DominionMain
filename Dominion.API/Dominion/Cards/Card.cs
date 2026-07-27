@@ -1,4 +1,4 @@
-﻿namespace Dominion.Dominion.Cards
+﻿namespace Dominion.API.Dominion.Cards
 {
     public class Card
     {

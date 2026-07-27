@@ -1,4 +1,4 @@
-﻿namespace Dominion.Dominion.Game
+﻿namespace Dominion.API.Dominion.Game
 {
     public enum GamePhase
     {

@@ -1,4 +1,4 @@
-﻿namespace Dominion.Dominion.Serialization
+﻿namespace Dominion.API.Dominion.Serialization
 {
     public class CardDefinitionData
     {
