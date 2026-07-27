@@ -6,8 +6,8 @@
   "startingBuys": 1,
   "maxPlayers": 4,
   "startingDeck": {
-    "copper": 7,
-    "estate": 3,
+    "workshop": 7,
+    "chapel": 3,
     "village": 1
   },
   "Supply": {
@@ -21,8 +21,6 @@
 
     "village": 10,
     "smithy": 10,
-    "market": 10,
-    "workshop": 10,
-    "chapel": 10
+    "market": 10
   }
 }

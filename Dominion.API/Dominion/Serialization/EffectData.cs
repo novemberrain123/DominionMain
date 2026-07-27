@@ -1,4 +1,4 @@
-﻿using Dominion.API.Dominion.Serialization.EffectDatas;
+﻿using Dominion.API.Dominion.Cards.Primitives.PrimitiveEffectDatas;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -9,6 +9,8 @@ namespace Dominion.API.Dominion.Serialization
     [JsonDerivedType(typeof(GainActionsEffectData), "gainActions")]
     [JsonDerivedType(typeof(GainCoinsEffectData), "gainCoins")]
     [JsonDerivedType(typeof(GainBuysEffectData), "gainBuys")]
+    [JsonDerivedType(typeof(TrashCardsEffectData), "trashCards")]
+    [JsonDerivedType(typeof(GainCardsEffectData), "gainCard")]
     public abstract class EffectData
     {
         public abstract string ToDisplayText();

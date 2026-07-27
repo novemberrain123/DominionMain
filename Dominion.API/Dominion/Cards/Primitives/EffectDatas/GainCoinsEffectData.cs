@@ -1,6 +1,6 @@
 ﻿using Dominion.API.Dominion.Serialization;
 
-namespace Dominion.API.Dominion.Serialization.EffectDatas
+namespace Dominion.API.Dominion.Cards.Primitives.PrimitiveEffectDatas
 {
     public class GainCoinsEffectData : EffectData
     {

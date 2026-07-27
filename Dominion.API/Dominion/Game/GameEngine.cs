@@ -1,5 +1,8 @@
 ﻿using Dominion.API.Dominion.Cards;
+using Dominion.API.Dominion.Cards.Choices;
+using Dominion.API.Dominion.Game.Enums;
 using Dominion.API.Dominion.Players;
+using Dominion.API.Dominion.Serialization;
 using Microsoft.Win32;
 using System.Security.Cryptography;
 
@@ -11,6 +14,7 @@ namespace Dominion.API.Dominion.Game
         public GameState State { get; }
         private readonly Dictionary<string, Guid> _playerSessions = new();
         private readonly EffectResolver _effectResolver;
+        private readonly ChoiceResolver _choiceResolver;
         private readonly GameSetupService _gameSetupService;
         private readonly GameConfig _config;
 
@@ -18,6 +22,7 @@ namespace Dominion.API.Dominion.Game
             CardRegistry cards,
             GameState state,
             EffectResolver effectResolver,
+            ChoiceResolver choiceResolver,
             GameSetupService gameSetupService,
             GameConfig config
             )
@@ -25,8 +30,27 @@ namespace Dominion.API.Dominion.Game
             Cards = cards;
             State = state;
             _effectResolver = effectResolver;
+            _choiceResolver = choiceResolver;
             _gameSetupService = gameSetupService;
             _config = config;
+        }
+
+        private void EnsureNoPendingChoice()
+        {
+            if (State.PendingChoice is not null)
+            {
+                throw new InvalidOperationException(
+                    "The pending choice must be resolved first.");
+            }
+        }
+
+        private void EnsureNoCurrentExecution()
+        {
+            if (State.CurrentExecution is not null)
+            {
+                throw new InvalidOperationException(
+                    "Another card is still being resolved.");
+            }
         }
 
         private void EnsureCurrentPlayer(Guid playerId)
@@ -124,6 +148,17 @@ namespace Dominion.API.Dominion.Game
             return player;
         }
 
+        public void CreatePendingChoice(PendingChoice choice)
+        {
+            if (State.PendingChoice is not null)
+            {
+                throw new InvalidOperationException(
+                    "A pending choice already exists.");
+            }
+
+            State.PendingChoice = choice;
+        }
+
         public void PlayAllTreasures(Guid playerId)
         {
             var player = State.Players
@@ -144,6 +179,16 @@ namespace Dominion.API.Dominion.Game
         // Action and treasure play
         public void PlayCard(Guid playerId, Guid cardInstanceId)
         {
+            EnsureCurrentPlayer(playerId);
+            EnsureNoPendingChoice();
+            EnsureNoCurrentExecution();
+
+            if (State.CurrentExecution is not null)
+            {
+                throw new InvalidOperationException(
+                    "Another card is still being resolved.");
+            }
+
             var player = State.Players
                 .SingleOrDefault(p => p.Id == playerId)
                 ?? throw new InvalidOperationException(
@@ -163,7 +208,7 @@ namespace Dominion.API.Dominion.Game
                 player.Actions--;
             }
 
-            ExecuteEffect(player, card);
+            ExecuteEffects(player, card);
 
             State.Events.Add(new GameEvent
             {
@@ -245,22 +290,92 @@ namespace Dominion.API.Dominion.Game
             player.InPlay.Add(card);
         }
 
-        private void ExecuteEffect(
+        private void ExecuteEffects(
             Player player,
-            Card card)
+            Card sourceCard)
         {
-            foreach (var effect in card.Definition.Effects)
+            EnsureNoCurrentExecution();
+
+            State.CurrentExecution = new EffectExecutionContext
             {
+                Player = player,
+                SourceCard = sourceCard,
+                RemainingEffects = new Queue<EffectData>(
+                    sourceCard.Definition.Effects)
+            };
+
+            ContinueResolvingEffects();
+        }
+
+        private void ContinueResolvingEffects()
+        {
+            var execution = State.CurrentExecution;
+
+            if (execution is null)
+            {
+                return;
+            }
+
+            while (execution.RemainingEffects.Count > 0)
+            {
+                if (State.PendingChoice is not null)
+                {
+                    return;
+                }
+
+                var effect = execution.RemainingEffects.Dequeue();
+
                 _effectResolver.Apply(
                     effect,
                     this,
-                    player);
+                    execution.Player);
+
+                if (State.PendingChoice is not null)
+                {
+                    return;
+                }
             }
+
+            State.CurrentExecution = null;
+        }
+
+        public void ResolveChoice(
+            Guid playerId,
+            ResolveChoiceRequest request)
+        {
+            var choice = State.PendingChoice
+                ?? throw new InvalidOperationException(
+                    "There is no pending choice.");
+
+            if (choice.PlayerId != playerId)
+            {
+                throw new InvalidOperationException(
+                    "This choice belongs to another player.");
+            }
+
+            var player = State.Players
+                .SingleOrDefault(p => p.Id == playerId)
+                ?? throw new InvalidOperationException(
+                    "Player does not exist.");
+
+            _choiceResolver.Resolve(
+                choice,
+                request,
+                this,
+                player);
+
+            State.PendingChoice = null;
+
+            ContinueResolvingEffects();
         }
 
         // Buy phase
         public void BuyCard(Guid playerId, string cardDefinitionId)
         {
+            EnsureCurrentPlayer(playerId);
+            EnsureNoPendingChoice();
+            EnsureNoCurrentExecution();
+
             var player = State.Players
                 .SingleOrDefault(p => p.Id == playerId)
                 ?? throw new InvalidOperationException(
@@ -274,6 +389,40 @@ namespace Dominion.API.Dominion.Game
             if (IsGameOver())
             {
                 EndGame();
+            }
+        }
+
+        public void GainCard(
+            Player player,
+            CardDefinition card,
+            CardDestination destination)
+        {
+            var pile = State.SupplyPiles[card.Id];
+
+            pile.RemoveCard();
+
+            var instance = new Card
+            {
+                Definition = card
+            };
+
+            switch (destination)
+            {
+                case CardDestination.Discard:
+                    player.DiscardPile.Add(instance);
+                    break;
+
+                case CardDestination.Hand:
+                    player.Hand.Add(instance);
+                    break;
+
+                case CardDestination.DeckTop:
+                    player.Deck.Insert(0, instance);
+                    break;
+
+                default:
+                    throw new InvalidOperationException(
+                        $"Unknown gain destination '{destination}'.");
             }
         }
 
@@ -461,10 +610,16 @@ namespace Dominion.API.Dominion.Game
         {
             EnsureCurrentPlayer(playerId);
 
-            if (State.Status == GameStatus.Finished)
+            if (State.PendingChoice is not null)
             {
                 throw new InvalidOperationException(
-                    "The game is already over.");
+                    "The pending choice must be resolved first.");
+            }
+
+            if (State.CurrentExecution is not null)
+            {
+                throw new InvalidOperationException(
+                    "Another card is still being resolved.");
             }
 
             if (State.Phase != GamePhase.Action)
@@ -481,10 +636,16 @@ namespace Dominion.API.Dominion.Game
         {
             EnsureCurrentPlayer(playerId);
 
-            if (State.Status == GameStatus.Finished)
+            if (State.PendingChoice is not null)
             {
                 throw new InvalidOperationException(
-                    "The game is already over.");
+                    "The pending choice must be resolved first.");
+            }
+
+            if (State.CurrentExecution is not null)
+            {
+                throw new InvalidOperationException(
+                    "Another card is still being resolved.");
             }
 
             var currentPlayer =

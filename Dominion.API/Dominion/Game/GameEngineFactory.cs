@@ -9,6 +9,7 @@ namespace Dominion.API.Dominion.Game
         private readonly GameModeLoader _modeLoader;
         private readonly SupplyBuilder _supplyBuilder;
         private readonly EffectResolver _effectResolver;
+        private readonly ChoiceResolver _choiceResolver;
         private readonly GameEngineProvider _engineProvider;
         private readonly GameSetupService _gameSetupService;
 
@@ -17,6 +18,7 @@ namespace Dominion.API.Dominion.Game
             GameModeLoader modeLoader,
             SupplyBuilder supplyBuilder,
             EffectResolver effectResolver,
+            ChoiceResolver choiceResolver,
             GameEngineProvider engineProvider,
             GameSetupService gameSetupService
             )
@@ -25,6 +27,7 @@ namespace Dominion.API.Dominion.Game
             _modeLoader = modeLoader;
             _supplyBuilder = supplyBuilder;
             _effectResolver = effectResolver;
+            _choiceResolver = choiceResolver;
             _engineProvider = engineProvider;
             _gameSetupService = gameSetupService;
         }
@@ -37,7 +40,7 @@ namespace Dominion.API.Dominion.Game
             var state = new GameState();
             state.Initialize();
 
-            var engine = new GameEngine(registry, state, _effectResolver, _gameSetupService, config);
+            var engine = new GameEngine(registry, state, _effectResolver, _choiceResolver, _gameSetupService, config);
 
             _engineProvider.Add(engine); // inject the engine into the provider for debug tools
 

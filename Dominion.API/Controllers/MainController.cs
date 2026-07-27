@@ -147,8 +147,7 @@ public class MainController : ControllerBase
     }
 
     [HttpPost("{gameId:guid}/play-all-treasures")]
-    public Task<ActionResult<GameStateDto>> PlayAllTreasures(
-        Guid gameId)
+    public Task<ActionResult<GameStateDto>> PlayAllTreasures(Guid gameId)
     {
         return ExecutePlayerAction(
             gameId,
@@ -156,9 +155,22 @@ public class MainController : ControllerBase
                 engine.PlayAllTreasures(playerId));
     }
 
+    [HttpPost("{gameId:guid}/resolve-choice")]
+    public Task<ActionResult<GameStateDto>> ResolveChoice(
+        Guid gameId,
+        [FromBody] ResolveChoiceRequest request)
+    {
+        return ExecutePlayerAction(
+            gameId,
+            (engine, playerId) =>
+                engine.ResolveChoice(
+                    playerId,
+                    request));
+    }
+
     private async Task<ActionResult<GameStateDto>> ExecuteGameAction(
-    Guid gameId,
-    Action<GameEngine> action)
+        Guid gameId,
+        Action<GameEngine> action)
     {
         var engine = _provider.Get(gameId);
 

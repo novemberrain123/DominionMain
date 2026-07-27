@@ -28,6 +28,9 @@ builder.Services.AddSwaggerGen();
 // Effect Resolver
 builder.Services.AddSingleton<EffectResolver>();
 
+// Choice Resolver
+builder.Services.AddSingleton<ChoiceResolver>();
+
 // Card creation pipeline
 builder.Services.AddSingleton<CardDefinitionFactory>();
 

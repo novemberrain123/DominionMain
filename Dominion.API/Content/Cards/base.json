@@ -163,6 +163,7 @@
         "displayName": "Mine",
         "cost": 5,
         "types": [ "Action" ],
+        "description": "Trash a Treasure from your hand. Gain a Treasure to your hand costing up to 3 more than it.",
         "effects": [
             {
                 "type": "trashAndUpgradeTreasure"

@@ -1,5 +1,5 @@
 ﻿using Dominion.API.Dominion.Cards;
-using Dominion.API.Dominion.Game;
+using Dominion.API.Dominion.Game.Enums;
 
 namespace Dominion.API.Dominion.Serialization;
 
@@ -17,6 +17,7 @@ public class GameStateDto
 
     public required int TrashCount { get; init; }
     public GameResultDto? Result { get; init; }
+    public PendingChoiceDto? PendingChoice { get; init; }
 }
 
 public class PlayerDto
@@ -67,4 +68,18 @@ public class PlayerResultDto
     public required Guid PlayerId { get; init; }
     public required int VictoryPoints { get; init; }
     public required int Rank { get; init; }
+}
+
+public class PendingChoiceDto
+{
+    public required string Type { get; init; }
+
+    public required Guid PlayerId { get; init; }
+
+    public required string Prompt { get; init; }
+
+    public required bool CanSkip { get; init; }
+
+    public required List<string> EligibleCardIds { get; init; }
+    public required List<string>? EligibleDefinitionIds { get; init; } //for supply pile interactions
 }

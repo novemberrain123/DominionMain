@@ -10,7 +10,8 @@ namespace Dominion.API.Dominion.Cards
         public required int Cost { get; init; }
         public int VictoryPoints { get; init; }
         public HashSet<CardType> Types { get; init; }
-
         public List<EffectData> Effects { get; init; }
+        public string? Description { get; init; }
+
     }
 }

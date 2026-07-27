@@ -1,7 +1,6 @@
 ﻿using Dominion.API.Dominion.Cards;
 using Dominion.API.Dominion.Game;
 using Dominion.API.Dominion.Players;
-using Dominion.API.Dominion.Serialization.EffectDatas;
 
 namespace Dominion.API.Dominion.Serialization;
 
@@ -91,14 +90,16 @@ public static class GameStateDtoMapper
     }
     private static CardDto ToCardDto(Card card)
     {
+        CardDefinition definition = card.Definition;
+
         return new CardDto
         {
             InstanceId = card.Id,
-            DefinitionId = card.Definition.Id,
-            Name = card.Definition.DisplayName,
-            Cost = card.Definition.Cost,
-            Types = card.Definition.Types.ToList(),
-            Effects = card.Definition.Effects.Select(e => e.ToDisplayText()).ToList()
+            DefinitionId = definition.Id,
+            Name = definition.DisplayName,
+            Cost = definition.Cost,
+            Types = definition.Types.ToList(),
+            Effects = GetDisplayText(definition)
         };
     }
 
@@ -115,9 +116,22 @@ public static class GameStateDtoMapper
             Name = definition.DisplayName,
             Cost = definition.Cost,
             Types = definition.Types.ToList(),
-            Effects = definition.Effects.Select(e => e.ToDisplayText()).ToList(),
+            Effects = GetDisplayText(definition),
             Remaining = pile.Count
         };
+    }
+
+    private static List<string> GetDisplayText(CardDefinition definition)
+    {
+        if (!string.IsNullOrWhiteSpace(definition.Description))
+        {
+            return [definition.Description];
+        }
+
+        return definition.Effects
+            .Select(effect => effect.ToDisplayText())
+            .Where(text => !string.IsNullOrWhiteSpace(text))
+            .ToList();
     }
 
     private static GameResultDto ToGameResultDto(GameResult result)

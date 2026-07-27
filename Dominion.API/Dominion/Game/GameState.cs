@@ -1,4 +1,6 @@
 ﻿using Dominion.API.Dominion.Cards;
+using Dominion.API.Dominion.Cards.Choices;
+using Dominion.API.Dominion.Game.Enums;
 using Dominion.API.Dominion.Players;
 
 namespace Dominion.API.Dominion.Game
@@ -14,13 +16,17 @@ namespace Dominion.API.Dominion.Game
 
         public Dictionary<string, SupplyPile> SupplyPiles { get; set; } = new();
 
-        public List<Card> Trash { get; private set; } = new();
+        public List<Card> Trash { get; set; } = new();
 
         public GameResult? Result { get; set; }
 
         public GameStatus Status { get; set; } = GameStatus.Lobby;
 
         public List<GameEvent> Events { get; private set; } = new();
+
+        public PendingChoice? PendingChoice { get; set; }
+
+        public EffectExecutionContext? CurrentExecution { get; set; }
 
         public GameState()
         {
