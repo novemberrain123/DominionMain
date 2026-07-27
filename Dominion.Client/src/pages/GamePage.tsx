@@ -61,7 +61,7 @@ export default function GamePage() {
         }
 
         void loadGame(gameId);
-    }, [gameId]);
+    }, [gameId, loadGame]);
 
     useEffect(() => {
         if (!gameId) {
