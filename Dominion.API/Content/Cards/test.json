@@ -154,10 +154,12 @@
     "displayName": "Workshop",
     "cost": 3,
     "types": [ "Action" ],
+    "description": " Gain a card costing up to 4 coins",
     "effects": [
       {
         "type": "gainCard",
-        "maxCost": 4
+        "maximumCardCost": 4,
+        "destination": "discard"
       }
     ]
   },
@@ -169,7 +171,7 @@
     "effects": [
       {
         "type": "trashCards",
-        "maxAmount": 4
+        "maximum": 4
       }
     ]
   }

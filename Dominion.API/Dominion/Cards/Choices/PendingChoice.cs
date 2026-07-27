@@ -3,9 +3,6 @@ using System.Text.Json.Serialization;
 
 namespace Dominion.API.Dominion.Cards.Choices
 {
-    [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
-    [JsonDerivedType(typeof(GainCardsPendingChoice), "gainCards")]
-    [JsonDerivedType(typeof(TrashCardsPendingChoice), "trashCards")]
     public abstract class PendingChoice
     {
         public required Guid PlayerId { get; init; }

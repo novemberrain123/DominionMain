@@ -7,6 +7,7 @@ namespace Dominion.API.Config
         public static readonly JsonSerializerOptions Options = new()
         {
             PropertyNameCaseInsensitive = true
+
         };
     }
 }

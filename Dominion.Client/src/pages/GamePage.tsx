@@ -41,6 +41,30 @@ export default function GamePage() {
         });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const pendingChoice = game?.pendingChoice ?? null;
+
+
+    const isMyPendingChoice =
+        pendingChoice?.playerId === playerId;
+
+    const gainChoice =
+        isMyPendingChoice &&
+            pendingChoice?.type === "gainCards"
+            ? pendingChoice
+            : null;
+
+    const cardChoice =
+        isMyPendingChoice &&
+            pendingChoice?.type === "trashCards"
+            ? pendingChoice
+            : null;
+
+    const [selectedDefinitionIds, setSelectedDefinitionIds] =
+        useState<string[]>([]);
+
+    const [selectedCardIds, setSelectedCardIds] =
+        useState<string[]>([]);
+
     const isMyTurn =
         game?.currentPlayerId === playerId;
 
@@ -82,6 +106,7 @@ export default function GamePage() {
 
             setGame(loadedGame);
             setError(null);
+
         } catch (error) {
             setError(
                 error instanceof Error
@@ -183,7 +208,7 @@ export default function GamePage() {
 
 
 
- 
+
     async function joinGame() {
         if (!gameId || !playerName.trim()) {
             return;
@@ -241,6 +266,105 @@ export default function GamePage() {
         } finally {
             setIsSubmitting(false);
         }
+    }
+
+    async function resolveChoice() {
+        if (!gameId || !playerToken || !gainChoice) {
+            return;
+        }
+
+
+        try {
+            setError(null);
+            setIsSubmitting(true);
+
+            console.log(selectedCardIds, selectedDefinitionIds);
+
+            const response = await fetch(
+                `${API_BASE_URL}/games/${gameId}/resolve-choice`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Player-Token": playerToken,
+                    },
+                    body: JSON.stringify({
+                        SelectedCardInstanceIds:
+                            selectedCardIds,
+
+                        SelectedDefinitionIds:
+                            selectedDefinitionIds,
+                    }),
+                },
+            );
+
+            if (!response.ok) {
+                const message = await response.text();
+
+                throw new Error(
+                    message ||
+                    `Failed to resolve choice: ${response.status}`,
+                );
+            }
+
+            const updatedGame: GameDto.GameStateDto =
+                await response.json();
+
+            setGame(updatedGame);
+            setSelectedDefinitionIds([]);
+        } catch (error) {
+            setError(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to resolve choice.",
+            );
+        } finally {
+            setIsSubmitting(false);
+        }
+    }
+
+    function toggleCardSelection(cardId: string) {
+        if (!cardChoice)
+            return;
+
+        console.log("Toggling card selection:", cardId, selectedCardIds);
+        setSelectedCardIds(current => {
+
+            if (current.includes(cardId))
+                return current.filter(x => x !== cardId);
+
+            if (cardChoice.maximum === 1)
+                return [cardId];
+
+            if (current.length >= cardChoice.maximum)
+                return current;
+
+            return [...current, cardId];
+        });
+    }
+
+    function toggleGainSelection(definitionId: string) {
+        if (!gainChoice) {
+            return;
+        }
+
+        console.log("Toggling gain selection:", definitionId, selectedDefinitionIds);
+
+        setSelectedDefinitionIds(current => {
+            if (current.includes(definitionId)) {
+                return current.filter(id => id !== definitionId);
+            }
+
+            if (gainChoice.maximum === 1) {
+                return [definitionId];
+            }
+
+            if (current.length >= gainChoice.maximum) {
+                return current;
+            }
+
+            return [...current, definitionId];
+        });
     }
 
     async function playAllTreasures() {
@@ -536,7 +660,11 @@ export default function GamePage() {
                             <button
                                 type="button"
                                 onClick={() => void playAllTreasures()}
-                                disabled={game.status == "finished" || !isMyTurn}
+                                disabled={
+                                    game.status === "finished" ||
+                                    !isMyTurn ||
+                                    game.pendingChoice !== null
+                                }
                                 className="rounded-xl bg-amber-600 px-4 py-2 font-semibold text-white transition hover:bg-amber-500 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 Play All Treasures
@@ -546,7 +674,11 @@ export default function GamePage() {
                         <button
                             type="button"
                             onClick={() => void nextPhase()}
-                            disabled={game.status == "finished" || !isMyTurn}
+                            disabled={
+                                game.status === "finished" ||
+                                !isMyTurn ||
+                                game.pendingChoice !== null
+                            }
                             className="rounded-xl bg-yellow-300 px-4 py-2 font-semibold text-black transition hover:bg-yellow-200 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             {game.phase === "action"
@@ -567,24 +699,68 @@ export default function GamePage() {
                         />
                     </div>
                 </header>
+                {gainChoice && (
+                    <section className="rounded-2xl border border-yellow-300 bg-yellow-300/10 p-4">
+                        <h2 className="text-xl font-semibold">
+                            {pendingChoice?.prompt}
+                        </h2>
 
+                        <div className="mt-4 flex gap-3">
+                            <button
+                                onClick={() => void resolveChoice()}
+                            >
+                                Confirm
+                            </button>
+
+                            {pendingChoice?.minimum === 0 && (
+                                <button
+                                    onClick={() => void resolveChoice()}
+                                >
+                                    Skip
+                                </button>
+                            )}
+                        </div>
+                    </section>
+                )}
                 <section>
                     <h2 className="mb-4 text-2xl font-semibold">
                         Supply
                     </h2>
 
                     <div className="flex flex-wrap gap-3">
-                        {game.supply.map((pile) => (
-                            <SupplyCard
-                                key={pile.definitionId}
-                                pile={pile}
-                                onClick={
-                                    canBuyCards
-                                        ? () => buyCard(pile.definitionId)
-                                        : undefined
-                                }
-                            />
-                        ))}
+                        {game.supply.map((pile) => {
+                            const isEligibleGain =
+                                gainChoice?.eligibleDefinitionIds?.includes(
+                                    pile.definitionId,
+                                ) ?? false;
+
+                            const isSelectedGain =
+                                selectedDefinitionIds.includes(
+                                    pile.definitionId,
+                                );
+
+                            let onClick: (() => void) | undefined;
+
+                            if (gainChoice && isEligibleGain) {
+                                onClick = () =>
+                                    toggleGainSelection(pile.definitionId);
+                            }
+                            else if (!pendingChoice && canBuyCards) {
+                                onClick = () =>
+                                    void buyCard(pile.definitionId);
+                            }
+
+                            return (
+                                <SupplyCard
+                                    key={pile.definitionId}
+                                    pile={pile}
+                                    onClick={onClick}
+                                    isEligible={isEligibleGain}
+                                    isSelected={isSelectedGain}
+                                    isChoiceActive={gainChoice !== null}
+                                />
+                            );
+                        })}
                     </div>
                 </section>
 
@@ -599,7 +775,16 @@ export default function GamePage() {
                             isViewingPlayer={
                                 player.id === playerId
                             }
-                            onPlayCard={playCard}
+                            onPlayCard={
+                                game.pendingChoice === null
+                                    ? playCard
+                                    : undefined
+                            }
+                            onSelectCard={
+                                cardChoice
+                                    ? toggleCardSelection
+                                    : undefined
+                            }
                         />
                     ))}
                 </section>
@@ -668,16 +853,16 @@ function PlayerBoard({
     isCurrentPlayer,
     isViewingPlayer,
     onPlayCard,
+    onSelectCard,
+    selectedCardIds,
 }: {
     player: GameDto.PlayerDto;
     isCurrentPlayer: boolean;
     isViewingPlayer: boolean;
-    onPlayCard: (cardInstanceId: string) => void;
+    onPlayCard?: (cardInstanceId: string) => void;
+    onSelectCard?: (cardInstanceId: string) => void;
+    selectedCardIds?: string[];
 }) {
-    const canPlayCards =
-        isCurrentPlayer &&
-        isViewingPlayer &&
-        player.hand !== null;
 
     return (
         <article
@@ -722,10 +907,10 @@ function PlayerBoard({
                 title={`Hand (${player.handCount})`}
                 cards={player.hand}
                 onCardClick={
-                    canPlayCards
-                        ? onPlayCard
-                        : undefined
+                    onSelectCard ??
+                    (isCurrentPlayer ? onPlayCard : undefined)
                 }
+                selectedCardIds={selectedCardIds ?? []}
             />
 
             <CardZone
@@ -749,10 +934,12 @@ function CardZone({
     title,
     cards,
     onCardClick,
+    selectedCardIds,
 }: {
     title: string;
     cards: GameDto.CardDto[] | null;
     onCardClick?: (cardInstanceId: string) => void;
+    selectedCardIds?: string[];
 }) {
     if (cards === null) {
         return (
@@ -792,6 +979,11 @@ function CardZone({
                                         )
                                     : undefined
                             }
+                            isSelected={
+                                selectedCardIds !== undefined &&
+                                selectedCardIds.includes(card.instanceId)
+                            }
+
                         />
                     ))}
                 </div>
@@ -823,9 +1015,11 @@ function Stat({
 function Card({
     card,
     onClick,
+    isSelected,
 }: {
     card: GameDto.CardDto;
     onClick?: () => void;
+    isSelected: boolean;
 }) {
     const className = [
         "flex h-40 w-28 flex-col rounded-2xl",
@@ -833,6 +1027,9 @@ function Card({
         onClick
             ? "cursor-pointer transition hover:-translate-y-1 hover:shadow-xl"
             : "",
+        isSelected
+            ? "ring-4 ring-yellow-300"
+            : ""
     ].join(" ");
 
     const content = (
@@ -877,12 +1074,28 @@ function Card({
 function SupplyCard({
     pile,
     onClick,
+    isEligible = false,
+    isSelected = false,
+    isChoiceActive = false,
 }: {
     pile: GameDto.SupplyPileDto;
     onClick?: () => void;
+    isEligible?: boolean;
+    isSelected?: boolean;
+    isChoiceActive?: boolean;
 }) {
     return (
-        <div className="relative">
+        <div
+            className={[
+                "relative rounded-2xl",
+                isSelected
+                    ? "ring-4 ring-yellow-300"
+                    : "",
+                isChoiceActive && !isEligible
+                    ? "opacity-40"
+                    : "",
+            ].join(" ")}
+        >
             <Card
                 card={{
                     instanceId: pile.definitionId,
@@ -893,6 +1106,7 @@ function SupplyCard({
                     effects: pile.effects,
                 }}
                 onClick={onClick}
+                isSelected={false}
             />
 
             <div className="absolute -right-2 -top-2 rounded-full bg-black px-2 py-1 text-sm font-bold text-white">

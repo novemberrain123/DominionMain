@@ -73,8 +73,6 @@ namespace Dominion.API.Dominion.Game
 
         public void StartGame(Guid playerId)
         {
-            EnsureCurrentPlayer(playerId);
-
             if (State.Status != GameStatus.Lobby)
             {
                 throw new InvalidOperationException(

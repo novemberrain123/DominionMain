@@ -1,4 +1,5 @@
 ﻿using Dominion.API.Dominion.Cards;
+using Dominion.API.Dominion.Cards.Choices;
 using Dominion.API.Dominion.Game;
 using Dominion.API.Dominion.Players;
 
@@ -49,7 +50,14 @@ public static class GameStateDtoMapper
                         revealAllPrivateInformation))
                 .ToList(),
 
-            TrashCount = state.Trash.Count
+            TrashCount = state.Trash.Count,
+
+
+            PendingChoice = state.PendingChoice is null
+                ? null
+                : ToPendingChoiceDto(state.PendingChoice),
+
+
         };
     }
 
@@ -149,6 +157,36 @@ public static class GameStateDtoMapper
         };
 
 
+    }
+
+    private static PendingChoiceDto ToPendingChoiceDto(PendingChoice choice)
+    {
+        return choice switch
+        {
+            GainCardsPendingChoice gain => new GainCardsPendingChoiceDto
+            {
+                PlayerId = gain.PlayerId,
+                Prompt = gain.Prompt,
+                Minimum = gain.Minimum,
+                Maximum = gain.Maximum,
+                MinimumCardCost = gain.MinimumCardCost,
+                MaximumCardCost = gain.MaximumCardCost,
+                EligibleDefinitionIds = gain.EligibleDefinitionIds,
+                Destination = gain.Destination
+            },
+
+            TrashCardsPendingChoice trash => new TrashCardsPendingChoiceDto
+            {
+                PlayerId = trash.PlayerId,
+                Prompt = trash.Prompt,
+                Minimum = trash.Minimum,
+                Maximum = trash.Maximum,
+                EligibleCardIds = trash.EligibleCardIds
+            },
+
+            _ => throw new NotSupportedException(
+                $"Unsupported pending choice '{choice.GetType().Name}'.")
+        };
     }
 
 

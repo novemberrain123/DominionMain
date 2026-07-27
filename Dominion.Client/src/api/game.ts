@@ -34,6 +34,32 @@ export interface PlayerDto  {
     deckCount: number;
 };
 
+export interface PendingChoiceDto {
+    playerId: string;
+    prompt: string;
+    minimum: number;
+    maximum: number;
+}
+
+export interface GainCardsPendingChoiceDto
+    extends PendingChoiceDto {
+    type: "gainCards";
+    eligibleDefinitionIds: string[];
+    minimumCardCost: number | null;
+    maximumCardCost: number | null;
+    destination: string;
+}
+
+export interface TrashCardsPendingChoiceDto
+    extends PendingChoiceDto {
+    type: "trashCards";
+    eligibleCardIds: string[];
+}
+
+export type AnyPendingChoiceDto =
+    | GainCardsPendingChoiceDto
+    | TrashCardsPendingChoiceDto;
+
 export interface GameStateDto  {
     gameId: string;
     turnNumber: number;
@@ -45,6 +71,7 @@ export interface GameStateDto  {
     supply: SupplyPileDto[];
     trashCount: number;
     result?: GameResultDto;
+    pendingChoice: AnyPendingChoiceDto | null;
 };
 
 export interface PlayerResultDto {

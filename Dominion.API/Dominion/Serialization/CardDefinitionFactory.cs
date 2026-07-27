@@ -16,6 +16,8 @@ namespace Dominion.API.Dominion.Serialization
 
                 VictoryPoints = data.VictoryPoints,
 
+                Description = data.Description,
+
                 Types = data.Types
                     .Select(Enum.Parse<CardType>)
                     .ToHashSet(),

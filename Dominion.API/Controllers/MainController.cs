@@ -32,7 +32,7 @@ public class MainController : ControllerBase
     public ActionResult<GameStateDto> Bootstrap()
     {
         var engine = _factory.Create(
-            "Content/Modes/base_mode.json",
+            "Content/Modes/test_mode.json",
             "Content/Cards/test.json");
 
         return Ok(ToDto(engine));

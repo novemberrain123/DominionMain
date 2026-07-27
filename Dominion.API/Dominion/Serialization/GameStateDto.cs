@@ -1,5 +1,6 @@
 ﻿using Dominion.API.Dominion.Cards;
 using Dominion.API.Dominion.Game.Enums;
+using System.Text.Json.Serialization;
 
 namespace Dominion.API.Dominion.Serialization;
 
@@ -70,16 +71,37 @@ public class PlayerResultDto
     public required int Rank { get; init; }
 }
 
-public class PendingChoiceDto
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
+[JsonDerivedType(typeof(GainCardsPendingChoiceDto), "gainCards")]
+[JsonDerivedType(typeof(TrashCardsPendingChoiceDto), "trashCards")]
+public abstract class PendingChoiceDto
 {
-    public required string Type { get; init; }
-
     public required Guid PlayerId { get; init; }
-
     public required string Prompt { get; init; }
+}
 
-    public required bool CanSkip { get; init; }
+public class GainCardsPendingChoiceDto : PendingChoiceDto
+{
+    public required int Minimum { get; init; }
+    public required int Maximum { get; init; }
 
-    public required List<string> EligibleCardIds { get; init; }
-    public required List<string>? EligibleDefinitionIds { get; init; } //for supply pile interactions
+    public int? MinimumCardCost { get; init; }
+    public int? MaximumCardCost { get; init; }
+
+    public required IReadOnlyList<string> EligibleDefinitionIds { get; init; }
+
+    public required CardDestination Destination { get; init; }
+}
+
+public class CardSelectionPendingChoiceDto : PendingChoiceDto
+{
+    public required int Minimum { get; init; }
+    public required int Maximum { get; init; }
+
+    public required IReadOnlyList<Guid> EligibleCardIds { get; init; }
+}
+
+public class TrashCardsPendingChoiceDto
+    : CardSelectionPendingChoiceDto
+{
 }

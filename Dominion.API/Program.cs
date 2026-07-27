@@ -14,6 +14,9 @@ builder.Services.AddControllers()
                     options.JsonSerializerOptions.Converters.Add(
                         new JsonStringEnumConverter(
                             JsonNamingPolicy.CamelCase));
+
+                    options.JsonSerializerOptions.Converters.Add(
+                        new JsonStringEnumConverter());
                 });
 
 // Swagger
@@ -61,7 +64,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend", policy =>
     {
         policy
-            .WithOrigins("http://localhost:1044") 
+            .WithOrigins("http://localhost:1044")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
