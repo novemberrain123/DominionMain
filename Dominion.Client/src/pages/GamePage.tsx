@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import GameResultModal from "../components/GameResultModal";
 import * as GameDto from "../api/game";
@@ -50,17 +50,59 @@ export default function GamePage() {
 
     const isJoined = playerId !== null;
 
-
-    useEffect(() => {
+    const refreshGame = useCallback(async () => {
         if (!gameId) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setError("No game ID was provided.");
-            setIsLoading(false);
             return;
         }
 
-        void loadGame(gameId);
-    }, [gameId, loadGame]);
+        try {
+            const response = await fetch(
+                `${API_BASE_URL}/games/${gameId}`,
+                {
+                    method: "GET",
+                    headers: {
+                        ...(playerToken && {
+                            "X-Player-Token": playerToken,
+                        }),
+                    },
+                },
+            );
+
+            if (!response.ok) {
+                const message = await response.text();
+
+                throw new Error(
+                    message ||
+                    `Failed to load game: ${response.status}`,
+                );
+            }
+
+            const loadedGame: GameDto.GameStateDto =
+                await response.json();
+
+            setGame(loadedGame);
+            setError(null);
+        } catch (error) {
+            setError(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to load game.",
+            );
+        } finally {
+            setIsLoading(false);
+        }
+    }, [gameId, playerToken]);
+
+
+    useEffect(() => {
+        if (!gameId) {
+            return;
+        }
+
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        void refreshGame();
+    }, [gameId, refreshGame]);
+
 
     useEffect(() => {
         if (!gameId) {
@@ -139,52 +181,9 @@ export default function GamePage() {
         };
     }, [gameId, refreshGame]);
 
-    async function loadGame(id: string) {
-        try {
-            setError(null);
-
-            const response = await fetch(
-                `${API_BASE_URL}/games/${id}`,
-                {
-                    method: "GET",
-                    headers: {
-                        ...(playerToken && {
-                            "X-Player-Token": playerToken,
-                        }),
-                    },
-                },
-            );
-
-            if (!response.ok) {
-                const message = await response.text();
-
-                throw new Error(
-                    message || `Failed to load game: ${response.status}`,
-                );
-            }
-
-            const loadedGame: GameDto.GameStateDto = await response.json();
-            setGame(loadedGame);
-        } catch (error) {
-            setError(
-                error instanceof Error
-                    ? error.message
-                    : "Failed to load game.",
-            );
-        } finally {
-            setIsLoading(false);
-        }
-    }
 
 
-    async function refreshGame() {
-        if (!gameId) {
-            return;
-        }
-
-        await loadGame(gameId);
-    }
-
+ 
     async function joinGame() {
         if (!gameId || !playerName.trim()) {
             return;
@@ -233,8 +232,6 @@ export default function GamePage() {
                 `dominion-player-token-${gameId}`,
                 result.playerToken,
             );
-
-            await refreshGame();
         } catch (error) {
             setError(
                 error instanceof Error
