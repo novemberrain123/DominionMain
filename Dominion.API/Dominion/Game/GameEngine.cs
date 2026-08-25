@@ -399,10 +399,7 @@ namespace Dominion.API.Dominion.Game
 
             pile.RemoveCard();
 
-            var instance = new Card
-            {
-                Definition = card
-            };
+            var instance = new Card(card);
 
             switch (destination)
             {
@@ -489,10 +486,7 @@ namespace Dominion.API.Dominion.Game
 
             pile.RemoveCard();
 
-            var instance = new Card
-            {
-                Definition = card
-            };
+            var instance = new Card(card);
 
             player.DiscardPile.Add(instance);
             player.Coins -= card.Cost;

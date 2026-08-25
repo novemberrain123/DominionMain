@@ -8,5 +8,5 @@ public class EffectExecutionContext
     public required Card SourceCard { get; init; }
     public required Queue<EffectData> RemainingEffects { get; init; }
     public Card? LastTrashedCard { get; set; }
-    public List<Card> RememberedCards { get; } = [];
+    public List<Card> RememberedCards { get; set; } = [];
 }

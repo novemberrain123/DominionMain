@@ -33,7 +33,7 @@ namespace Dominion.API.Dominion.Game
                 {
                     //add to discardpile so that it gets shuffled into the deck when the player draws
                     player.DiscardPile.Add(
-                        new Card { Definition = engine.Cards.Get(entry.Key) }
+                        new Card(engine.Cards.Get(entry.Key))
                     );
                 }
             }

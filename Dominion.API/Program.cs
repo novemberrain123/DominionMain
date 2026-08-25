@@ -1,7 +1,9 @@
 ﻿using Dominion.API.Dominion.Cards;
 using Dominion.API.Dominion.Game;
+using Dominion.API.Dominion.Persistance;
 using Dominion.API.Dominion.Serialization;
 using Dominion.API.Hubs;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -23,39 +25,8 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-
-// =====================
-// CORE CONTENT SYSTEM
-// =====================
-
-// Effect Resolver
-builder.Services.AddSingleton<EffectResolver>();
-
-// Choice Resolver
-builder.Services.AddSingleton<ChoiceResolver>();
-
-// Card creation pipeline
-builder.Services.AddSingleton<CardDefinitionFactory>();
-
-// Registry (runtime card storage)
-builder.Services.AddSingleton<CardRegistry>();
-
-// Content loading (cards JSON → registry)
-builder.Services.AddSingleton<ContentLoader>();
-
-// Mode loading (mode JSON → GameConfig)
-builder.Services.AddSingleton<GameModeLoader>();
-
-// Supply building (config → runtime supply)
-builder.Services.AddSingleton<SupplyBuilder>();
-
-// Game setup (initializes players based on config)
-builder.Services.AddSingleton<GameSetupService>();
-
-// Engine factory (orchestrates everything)
-builder.Services.AddTransient<GameEngineFactory>();
-//test
-builder.Services.AddSingleton<GameEngineProvider>();
+// core
+builder.Services.AddDominionServices(builder.Configuration);
 
 builder.Services.AddSignalR();
 

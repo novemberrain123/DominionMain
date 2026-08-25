@@ -1,9 +1,10 @@
-﻿using Dominion.API.Dominion.Serialization;
+﻿using Dominion.API.Dominion.Game;
+using Dominion.API.Dominion.Serialization;
 using Dominion.API.Dominion.Serialization.RequestDto;
+using Dominion.API.Hubs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using Dominion.API.Dominion.Game;
-using Dominion.API.Hubs;
+using System.Threading;
 
 namespace Dominion.API.Controllers;
 
@@ -14,39 +15,43 @@ public class MainController : ControllerBase
     private const string PlayerTokenHeader = "X-Player-Token";
 
     private readonly GameEngineFactory _factory;
-    private readonly GameEngineProvider _provider;
+    private readonly GameSessionManager _sessionManager;
+    private readonly GameService _gameService;
     private readonly IHubContext<GameHub> _gameHub;
 
     public MainController(
         GameEngineFactory factory,
-        GameEngineProvider provider,
-        IHubContext<GameHub> gameHub)
+        GameSessionManager sessionManager,
+        IHubContext<GameHub> gameHub,
+        GameService gameService)
     {
         _factory = factory;
-        _provider = provider;
+        _sessionManager = sessionManager;
         _gameHub = gameHub;
-
+        _gameService = gameService;
     }
 
     [HttpPost]
-    public ActionResult<GameStateDto> Bootstrap()
+    public async Task<ActionResult<GameStateDto>> Bootstrap(CancellationToken cancellationToken)
     {
-        var engine = _factory.Create(
-            "Content/Modes/test_mode.json",
-            "Content/Cards/test.json");
+        var session = await _gameService.CreateGameAsync(
+            "test_mode",
+            cancellationToken);
 
-        return Ok(ToDto(engine));
+        return Ok(ToDto(session.Engine));
     }
 
     [HttpGet("{gameId:guid}")]
-    public ActionResult<GameStateDto> GetGame(Guid gameId)
+    public async Task<ActionResult<GameStateDto>> GetGame(Guid gameId, CancellationToken cancellationToken)
     {
-        var engine = _provider.Get(gameId);
+        var session = await _gameService.GetOrRestoreAsync(gameId, cancellationToken);
 
-        if (engine is null)
+        if (session is null)
         {
             return NotFound($"Game {gameId} was not found.");
         }
+
+        var engine = session.Engine;
 
         try
         {
@@ -65,12 +70,14 @@ public class MainController : ControllerBase
         Guid gameId,
         [FromBody] JoinGameRequest request)
     {
-        var engine = _provider.Get(gameId);
+        var session = _sessionManager.Get(gameId);
 
-        if (engine is null)
+        if (session is null)
         {
             return NotFound($"Game {gameId} was not found.");
         }
+
+        var engine = session.Engine;
 
         try
         {
@@ -172,12 +179,16 @@ public class MainController : ControllerBase
         Guid gameId,
         Action<GameEngine> action)
     {
-        var engine = _provider.Get(gameId);
+        var session = _sessionManager.Get(gameId);
 
-        if (engine is null)
+        if (session is null)
         {
             return NotFound("No game has been initialized.");
         }
+
+        await session.Lock.WaitAsync();
+
+        var engine = session.Engine;
 
         try
         {
@@ -193,24 +204,37 @@ public class MainController : ControllerBase
         {
             return BadRequest(exception.Message);
         }
+        finally
+        {
+            session.Lock.Release();
+        }
     }
 
     private async Task<ActionResult<GameStateDto>> ExecutePlayerAction(
         Guid gameId,
-        Action<GameEngine, Guid> action)
+        Action<GameEngine, Guid> action,
+        CancellationToken cancellationToken = default)
     {
-        var engine = _provider.Get(gameId);
+        var session = _sessionManager.Get(gameId);
 
-        if (engine is null)
+        if (session is null)
         {
             return NotFound($"Game {gameId} was not found.");
         }
+
+        await session.Lock.WaitAsync(cancellationToken);
+
+        var engine = session.Engine;
 
         try
         {
             var playerId = ResolvePlayerId(engine);
 
             action(engine, playerId);
+
+            await _gameService.SaveGameAsync(
+                session,
+                cancellationToken);
 
             await BroadcastGameUpdated(gameId);
 
@@ -223,6 +247,10 @@ public class MainController : ControllerBase
         catch (InvalidOperationException exception)
         {
             return BadRequest(exception.Message);
+        }
+        finally
+        {
+            session.Lock.Release();
         }
     }
 

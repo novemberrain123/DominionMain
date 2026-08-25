@@ -4,7 +4,7 @@ namespace Dominion.API.Dominion.Game
 {
     public class GameEvent
     {
-        public Guid Id { get; } = Guid.NewGuid();
+        public Guid Id { get; init; } = Guid.NewGuid();
         public required GameEventType Type { get; init; }
         public required long SequenceNumber { get; init; }
         public Guid? PlayerId { get; init; }

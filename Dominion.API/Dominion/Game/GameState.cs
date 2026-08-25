@@ -8,7 +8,7 @@ namespace Dominion.API.Dominion.Game
     public class GameState
     {
         public Guid GameId { get; }
-        public List<Player> Players { get; private set; } = new();
+        public List<Player> Players { get; set; } = new();
         public int CurrentPlayerIndex { get; set; }
 
         public GamePhase Phase { get; set; }
@@ -22,7 +22,7 @@ namespace Dominion.API.Dominion.Game
 
         public GameStatus Status { get; set; } = GameStatus.Lobby;
 
-        public List<GameEvent> Events { get; private set; } = new();
+        public List<GameEvent> Events { get; set; } = new();
 
         public PendingChoice? PendingChoice { get; set; }
 
