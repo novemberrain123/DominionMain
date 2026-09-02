@@ -118,7 +118,6 @@ export default function GamePage() {
         }
     }, [gameId, playerToken]);
 
-
     useEffect(() => {
         if (!gameId) {
             return;
@@ -269,16 +268,13 @@ export default function GamePage() {
     }
 
     async function resolveChoice() {
-        if (!gameId || !playerToken || !gainChoice) {
+        if (!gameId || !playerToken || (!gainChoice && !cardChoice)) {
             return;
         }
-
 
         try {
             setError(null);
             setIsSubmitting(true);
-
-            console.log(selectedCardIds, selectedDefinitionIds);
 
             const response = await fetch(
                 `${API_BASE_URL}/games/${gameId}/resolve-choice`,
@@ -289,11 +285,8 @@ export default function GamePage() {
                         "X-Player-Token": playerToken,
                     },
                     body: JSON.stringify({
-                        SelectedCardInstanceIds:
-                            selectedCardIds,
-
-                        SelectedDefinitionIds:
-                            selectedDefinitionIds,
+                        SelectedCardInstanceIds: selectedCardIds,
+                        SelectedDefinitionIds: selectedDefinitionIds,
                     }),
                 },
             );
@@ -311,6 +304,7 @@ export default function GamePage() {
                 await response.json();
 
             setGame(updatedGame);
+            setSelectedCardIds([]);
             setSelectedDefinitionIds([]);
         } catch (error) {
             setError(
@@ -322,7 +316,6 @@ export default function GamePage() {
             setIsSubmitting(false);
         }
     }
-
     function toggleCardSelection(cardId: string) {
         if (!cardChoice)
             return;
@@ -699,22 +692,42 @@ export default function GamePage() {
                         />
                     </div>
                 </header>
-                {gainChoice && (
+                {(gainChoice || cardChoice) && (
                     <section className="rounded-2xl border border-yellow-300 bg-yellow-300/10 p-4">
                         <h2 className="text-xl font-semibold">
                             {pendingChoice?.prompt}
                         </h2>
 
+                        <p className="mt-2 text-sm text-white/60">
+                            Select{" "}
+                            {pendingChoice?.minimum === pendingChoice?.maximum
+                                ? pendingChoice.minimum
+                                : `${pendingChoice?.minimum}–${pendingChoice?.maximum}`}{" "}
+                            {pendingChoice?.maximum === 1 ? "card" : "cards"}.
+                        </p>
+
                         <div className="mt-4 flex gap-3">
                             <button
+                                type="button"
                                 onClick={() => void resolveChoice()}
+                                disabled={
+                                    isSubmitting ||
+                                    (cardChoice
+                                        ? selectedCardIds.length < cardChoice.minimum
+                                        : selectedDefinitionIds.length <
+                                        (gainChoice?.minimum ?? 0))
+                                }
+                                className="rounded-xl bg-yellow-300 px-4 py-2 font-semibold text-black disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 Confirm
                             </button>
 
                             {pendingChoice?.minimum === 0 && (
                                 <button
+                                    type="button"
                                     onClick={() => void resolveChoice()}
+                                    disabled={isSubmitting}
+                                    className="rounded-xl bg-white/10 px-4 py-2 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     Skip
                                 </button>
@@ -785,6 +798,7 @@ export default function GamePage() {
                                     ? toggleCardSelection
                                     : undefined
                             }
+                            selectedCardIds={selectedCardIds}
                         />
                     ))}
                 </section>
@@ -1051,7 +1065,7 @@ function Card({
             </div>
 
             <div className="flex items-end justify-between text-xs font-medium text-black/60">
-                <span>{card.definitionId}</span>
+                {/*<span>{card.definitionId}</span>*/}
                 <span>Cost {card.cost}</span>
             </div>
         </>

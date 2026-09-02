@@ -18,24 +18,35 @@ public class MainController : ControllerBase
     private readonly GameSessionManager _sessionManager;
     private readonly GameService _gameService;
     private readonly IHubContext<GameHub> _gameHub;
+    private readonly GameModeLoader _modeLoader;
 
     public MainController(
         GameEngineFactory factory,
         GameSessionManager sessionManager,
         IHubContext<GameHub> gameHub,
-        GameService gameService)
+        GameService gameService,
+        GameModeLoader modeLoader)
     {
         _factory = factory;
         _sessionManager = sessionManager;
         _gameHub = gameHub;
         _gameService = gameService;
+        _modeLoader = modeLoader;
+    }
+
+    [HttpGet("modes")]
+    public ActionResult<IEnumerable<GameModeDto>> GetModes()
+    {
+        return Ok(_modeLoader.GetAvailableModes());
     }
 
     [HttpPost]
-    public async Task<ActionResult<GameStateDto>> Bootstrap(CancellationToken cancellationToken)
+    public async Task<ActionResult<GameStateDto>> Bootstrap(
+        [FromBody] CreateGameRequest request,
+        CancellationToken cancellationToken)
     {
         var session = await _gameService.CreateGameAsync(
-            "test_mode",
+            request.Mode,
             cancellationToken);
 
         return Ok(ToDto(session.Engine));

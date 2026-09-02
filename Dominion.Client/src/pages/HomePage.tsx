@@ -1,15 +1,54 @@
-﻿import { useState } from "react";
+﻿import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+
 import type { GameStateDto } from "../api/game";
 
 const API_BASE_URL = "https://localhost:7268";
+
+type GameMode = {
+    name: string;
+    displayName: string;
+    description: string;
+};
 
 export default function HomePage() {
     const navigate = useNavigate();
 
     const [gameIdInput, setGameIdInput] = useState("");
+    const [modes, setModes] = useState<GameMode[]>([]);
+    const [selectedMode, setSelectedMode] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        async function loadModes() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/games/modes`);
+
+                if (!response.ok) {
+                    throw new Error(
+                        `Failed to load game modes: ${response.status}`,
+                    );
+                }
+
+                const modes: GameMode[] = await response.json();
+
+                setModes(modes);
+
+                if (modes.length > 0) {
+                    setSelectedMode(modes[0].name);
+                }
+            } catch (error) {
+                setError(
+                    error instanceof Error
+                        ? error.message
+                        : "Failed to load game modes.",
+                );
+            }
+        }
+
+        void loadModes();
+    }, []);
 
     async function createGame() {
         try {
@@ -18,6 +57,12 @@ export default function HomePage() {
 
             const response = await fetch(`${API_BASE_URL}/games`, {
                 method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    mode: selectedMode,
+                }),
             });
 
             if (!response.ok) {
@@ -95,6 +140,45 @@ export default function HomePage() {
                             </p>
                         </div>
 
+                        <div className="mb-6">
+                            <label
+                                htmlFor="game-mode"
+                                className="mb-2 block text-sm font-medium text-white/80"
+                            >
+                                Game mode
+                            </label>
+
+                            <select
+                                id="game-mode"
+                                value={selectedMode}
+                                onChange={(event) =>
+                                    setSelectedMode(event.target.value)
+                                }
+                                disabled={modes.length === 0 || isLoading}
+                                className="w-full rounded-xl border border-white/15 bg-black/20 px-4 py-3 text-white outline-none transition focus:border-yellow-300 focus:ring-2 focus:ring-yellow-300/20 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                {modes.map((mode) => (
+                                    <option
+                                        key={mode.name}
+                                        value={mode.name}
+                                        className="bg-green-950 text-white"
+                                    >
+                                        {mode.displayName}
+                                    </option>
+                                ))}
+                            </select>
+
+                            {modes.length > 0 && (
+                                <p className="mt-2 text-sm text-white/50">
+                                    {
+                                        modes.find(
+                                            (mode) => mode.name === selectedMode,
+                                        )?.description
+                                    }
+                                </p>
+                            )}
+                        </div>
+
                         <button
                             type="button"
                             onClick={() => void createGame()}
@@ -139,9 +223,7 @@ export default function HomePage() {
                                     type="text"
                                     value={gameIdInput}
                                     onChange={(event) => {
-                                        setGameIdInput(
-                                            event.target.value,
-                                        );
+                                        setGameIdInput(event.target.value);
                                         setError(null);
                                     }}
                                     placeholder="Paste a game ID"

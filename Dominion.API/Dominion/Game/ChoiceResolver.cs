@@ -2,6 +2,7 @@
 using Dominion.API.Dominion.Cards.Choices;
 using Dominion.API.Dominion.Game;
 using Dominion.API.Dominion.Players;
+using Dominion.API.Dominion.Serialization.RequestDto;
 
 namespace Dominion.API.Dominion.Game
 {

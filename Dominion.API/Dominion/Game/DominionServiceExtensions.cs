@@ -21,6 +21,7 @@ public static class DominionServiceExtensions
         services.AddSingleton<GameSetupService>();
         services.AddSingleton<GameStateSerializer>();
         services.AddSingleton<CardDefinitionFactory>();
+        services.AddScoped<GameService>();
 
         // Holds active in-memory games
         services.AddSingleton<GameSessionManager>();

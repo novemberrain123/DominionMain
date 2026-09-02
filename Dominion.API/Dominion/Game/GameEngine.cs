@@ -3,6 +3,7 @@ using Dominion.API.Dominion.Cards.Choices;
 using Dominion.API.Dominion.Game.Enums;
 using Dominion.API.Dominion.Players;
 using Dominion.API.Dominion.Serialization;
+using Dominion.API.Dominion.Serialization.RequestDto;
 using Microsoft.Win32;
 using System.Security.Cryptography;
 
