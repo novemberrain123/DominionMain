@@ -26,15 +26,15 @@ jobs:
           node-version: '24'
 
       - name: Install client dependencies
-        working-directory: dominion.client
+        working-directory: Dominion.Client
         run: npm ci
 
       - name: Build client
-        working-directory: dominion.client
+        working-directory: Dominion.Client
         run: npm run build
 
       - name: Copy client build to API wwwroot
-        run: cp -r dominion.client/dist/* Dominion.API/wwwroot/
+        run: cp -r Dominion.Client/dist/* Dominion.API/wwwroot/
 
       - name: Build API
         run: dotnet build Dominion.API/Dominion.API.csproj --configuration Release
