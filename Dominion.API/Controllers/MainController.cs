@@ -9,7 +9,7 @@ using System.Threading;
 namespace Dominion.API.Controllers;
 
 [ApiController]
-[Route("games")]
+[Route("api/games")]
 public class MainController : ControllerBase
 {
     private const string PlayerTokenHeader = "X-Player-Token";

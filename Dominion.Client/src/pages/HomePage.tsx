@@ -23,7 +23,7 @@ export default function HomePage() {
     useEffect(() => {
         async function loadModes() {
             try {
-                const response = await fetch(`${API_BASE_URL}/games/modes`);
+                const response = await fetch(`${API_BASE_URL}/api/games/modes`);
 
                 if (!response.ok) {
                     throw new Error(
@@ -55,7 +55,7 @@ export default function HomePage() {
             setError(null);
             setIsLoading(true);
 
-            const response = await fetch(`${API_BASE_URL}/games`, {
+            const response = await fetch(`${API_BASE_URL}/api/games`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

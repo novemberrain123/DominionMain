@@ -81,7 +81,7 @@ export default function GamePage() {
 
         try {
             const response = await fetch(
-                `${API_BASE_URL}/games/${gameId}`,
+                `${API_BASE_URL}/api/games/${gameId}`,
                 {
                     method: "GET",
                     headers: {
@@ -218,7 +218,7 @@ export default function GamePage() {
             setIsSubmitting(true);
 
             const response = await fetch(
-                `${API_BASE_URL}/games/${gameId}/join`,
+                `${API_BASE_URL}/api/games/${gameId}/join`,
                 {
                     method: "POST",
                     headers: {
@@ -277,7 +277,7 @@ export default function GamePage() {
             setIsSubmitting(true);
 
             const response = await fetch(
-                `${API_BASE_URL}/games/${gameId}/resolve-choice`,
+                `${API_BASE_URL}/api/games/${gameId}/resolve-choice`,
                 {
                     method: "POST",
                     headers: {
@@ -370,7 +370,7 @@ export default function GamePage() {
 
 
             const response = await fetch(
-                `${API_BASE_URL}/games/${gameId}/play-all-treasures`,
+                `${API_BASE_URL}/api/games/${gameId}/play-all-treasures`,
                 {
                     method: "POST",
                     headers: {
@@ -422,7 +422,7 @@ export default function GamePage() {
             }
 
             const response = await fetch(
-                `${API_BASE_URL}/games/${game?.gameId}/buy-card`,
+                `${API_BASE_URL}/api/games/${game?.gameId}/buy-card`,
                 {
                     method: "POST",
                     headers: {
@@ -460,7 +460,7 @@ export default function GamePage() {
             setError(null);
 
             const response = await fetch(
-                `${API_BASE_URL}/games/${game?.gameId}/end-turn`,
+                `${API_BASE_URL}/api/games/${game?.gameId}/end-turn`,
                 {
                     method: "POST",
                     headers: {
@@ -496,7 +496,7 @@ export default function GamePage() {
             setError(null);
 
             const response = await fetch(
-                `${API_BASE_URL}/games/${game?.gameId}/end-action-phase`,
+                `${API_BASE_URL}/api/games/${game?.gameId}/end-action-phase`,
                 {
                     method: "POST",
                     headers: {
@@ -537,7 +537,7 @@ export default function GamePage() {
             }
 
             const response = await fetch(
-                `${API_BASE_URL}/games/${game?.gameId}/play-card`,
+                `${API_BASE_URL}/api/games/${game?.gameId}/play-card`,
                 {
                     method: "POST",
                     headers: {
@@ -579,7 +579,7 @@ export default function GamePage() {
             setIsSubmitting(true);
 
             const response = await fetch(
-                `${API_BASE_URL}/games/${gameId}/start`,
+                `${API_BASE_URL}/api/games/${gameId}/start`,
                 {
                     method: "POST",
                     headers: {
