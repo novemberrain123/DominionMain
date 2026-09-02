@@ -30,7 +30,6 @@
     <Folder Include="Game\" />
     <Folder Include="docs\" />
     <Folder Include="Players\" />
-    <Folder Include="wwwroot\" />
   </ItemGroup>
 
   <ProjectExtensions><VisualStudio><UserProperties content_4cards_4base_1json__JsonSchema="https://acp-protocol.dev/schemas/v1/attempts.schema.json" /></VisualStudio></ProjectExtensions>
