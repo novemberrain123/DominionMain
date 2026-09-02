@@ -644,7 +644,7 @@ export default function GamePage() {
                         </h1>
 
                         <p className="mt-1 text-white/70">
-                            Turn {game.turnNumber} · Phase: {game.phase}
+                            Turn {game.turnNumber} - Phase: {game.phase}
                         </p>
                     </div>
 
@@ -702,7 +702,7 @@ export default function GamePage() {
                             Select{" "}
                             {pendingChoice?.minimum === pendingChoice?.maximum
                                 ? pendingChoice?.minimum
-                                : `${pendingChoice?.minimum}–${pendingChoice?.maximum}`}{" "}
+                                : `${pendingChoice?.minimum}-${pendingChoice?.maximum}`}{" "}
                             {pendingChoice?.maximum === 1 ? "card" : "cards"}.
                         </p>
 
@@ -1049,7 +1049,7 @@ function Card({
     const content = (
         <>
             <div className="text-xs font-semibold uppercase tracking-wide text-black/60">
-                {card.types.join(" · ")}
+                {card.types.join(" - ")}
             </div>
 
             <div className="mt-1 text-center text-lg font-bold">
