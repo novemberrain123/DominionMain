@@ -3,3 +3,8 @@
 ################################################################################
 
 /Dominion.Tests/appsettings.json
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
