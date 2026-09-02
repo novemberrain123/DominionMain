@@ -1,5 +1,7 @@
 {
   "Name": "base_mode",
+  "DisplayName": "Base Game",
+  "Description": "The standard Dominion ruleset.",
   "CardSetId": "test",
   "startingHandSize": 5,
   "startingActions": 1,

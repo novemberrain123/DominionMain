@@ -701,7 +701,7 @@ export default function GamePage() {
                         <p className="mt-2 text-sm text-white/60">
                             Select{" "}
                             {pendingChoice?.minimum === pendingChoice?.maximum
-                                ? pendingChoice.minimum
+                                ? pendingChoice?.minimum
                                 : `${pendingChoice?.minimum}–${pendingChoice?.maximum}`}{" "}
                             {pendingChoice?.maximum === 1 ? "card" : "cards"}.
                         </p>
