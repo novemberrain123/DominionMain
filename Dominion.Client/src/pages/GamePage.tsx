@@ -10,8 +10,8 @@ import {
 } from "@microsoft/signalr";
 
 
-const API_BASE_URL = "https://localhost:7268";
-const SERVER_URL = "https://localhost:7268";
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
 
 export default function GamePage() {
