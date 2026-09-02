@@ -55,9 +55,12 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseDefaultFiles();
+app.UseStaticFiles();
 app.UseCors("AllowFrontend");
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<GameHub>("/hubs/game");
+app.MapFallbackToFile("/index.html");
 
 app.Run();
